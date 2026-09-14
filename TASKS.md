@@ -7,6 +7,7 @@
 ## Questions for human
 - [ ] Q1: docs/GDD.md הוא placeholder. יש להעתיק את ה-GDD האמיתי לריפו. (blocks all game-designer work in Phase 0)
 - [ ] Q3: monsters.yaml has 2 ENGINEERING PLACEHOLDER monsters (lost_referral, form_27b) so T-0.9 can show 3 AI kinds. game-designer replaces names/numbers in T-0.7. OK? (not blocking)
+- [ ] Q4: classes.yaml `growth` per archetype and the retuned xp_curve.yaml are ENGINEERING PLACEHOLDERS (stim reaches level 10 in ~10 min, numb ~24). game-designer owns them in T-0.7/T-1.8. OK? (not blocking)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -29,11 +30,11 @@
 - [ ] blocked T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items | test: validate_balance + balance_sim green | reason: waiting Q1 (real GDD) — skill names/mechanics are product decisions
 - [x] T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: client/tests/test_local_server.gd + docs/playtest_notes.md
 - [x] T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: client/tests/test_monster_ai.gd (5) + docs/screenshots/arena_1920x1080.png (3 kinds; placeholders per Q3)
-- [ ] ready T-0.10 | godot-dev | XP, level-up, stats UI | test: level 10 in 15 min (simulation)
-- [ ] ready T-0.11 | godot-dev | Basic inventory + gear comparison | test: screenshot
+- [ ] in-progress T-0.10 | godot-dev | XP, level-up, stats UI | test: level 10 in 15 min (simulation)
+- [ ] in-progress T-0.11 | godot-dev | Basic inventory + gear comparison | test: screenshot
 - [ ] blocked T-0.12 | game-designer + godot-dev | NPC "רוקח": 3 dialogue lines + shop | test: buy/sell tested | reason: waiting Q1
-- [ ] ready T-0.13 | godot-dev | Local save (JSON) | test: quit-and-reload keeps state
-- [ ] ready T-0.14 | devops | Export Android APK + Windows | test: APK runs (human confirms)
+- [ ] in-progress T-0.13 | godot-dev | Local save (JSON) | test: quit-and-reload keeps state
+- [ ] ready T-0.14 | devops | Export Android APK + Windows | test: APK runs (human confirms) | note: I18nBoot reads `res://../docs/content/*.yaml` — outside the .pck; export must copy content into client/ (or gen_rules emits a .gd table). Needs export templates (~1 GB download) + export_presets.cfg.
 
 ### QA reports
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
