@@ -1,0 +1,51 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/generated/stim.png" id="2_tex"]
+[ext_resource type="Script" path="res://scripts/player/state_machine.gd" id="3_sm"]
+[ext_resource type="Script" path="res://scripts/player/states/idle_state.gd" id="4_idle"]
+[ext_resource type="Script" path="res://scripts/player/states/run_state.gd" id="5_run"]
+[ext_resource type="Script" path="res://scripts/player/states/jump_state.gd" id="6_jump"]
+[ext_resource type="Script" path="res://scripts/player/states/attack_state.gd" id="7_attack"]
+[ext_resource type="Script" path="res://scripts/player/states/hurt_state.gd" id="8_hurt"]
+[ext_resource type="Script" path="res://scripts/player/states/dead_state.gd" id="9_dead"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_camera.tscn" id="10_cam"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(20, 30)
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_player")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+hframes = 4
+vframes = 6
+frame = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("3_sm")
+initial = &"Idle"
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("4_idle")
+
+[node name="Run" type="Node" parent="StateMachine"]
+script = ExtResource("5_run")
+
+[node name="Jump" type="Node" parent="StateMachine"]
+script = ExtResource("6_jump")
+
+[node name="Attack" type="Node" parent="StateMachine"]
+script = ExtResource("7_attack")
+
+[node name="Hurt" type="Node" parent="StateMachine"]
+script = ExtResource("8_hurt")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("9_dead")
+
+[node name="PlayerCamera" parent="." instance=ExtResource("10_cam")]

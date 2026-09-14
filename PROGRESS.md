@@ -1,5 +1,21 @@
 # PROGRESS
 
+## Session 2 — 2026-09-14 — Phase 0 start: player + combat rules
+**Done**
+- T-0.1/T-0.2/T-0.4: `client/scenes/player/player.tscn` (CharacterBody2D + 6-state StateMachine + PlayerCamera), flat test map, main.tscn boots it. 33 GUT tests total (was 6).
+- T-0.6: shared-rules `movement.ts`, `combat.ts` (damage/effective_hp/apply_damage/is_dead), `loot.ts` (roll_loot/loot_value) → generated movement.gd/combat.gd/loot.gd. 64 vitest tests (was 11); GUT parity fixture for damage + loot.
+- Translator: `for (const x of ARR)` and `X[k] == null → X.get(k) == null` (ADR-012); `ITEMS` balance data typed as Record for dynamic keys.
+- TASKS.md: Phase 0 backlog opened; T-I.2 / T-I.7 blocked on a human (docker daemon, first PR).
+
+**Next**
+- T-0.3 (TileMapLayer map 60×20) then T-0.5 (mobile controls) — both need a screenshot DoD; the sandbox has no display server, so screenshots need a human or xvfb in CI.
+- T-0.8 crash mechanic + T-0.9 monsters can proceed without the GDD; T-0.7/T-0.12 wait on Q1.
+- Human: answer Q1 (copy real GDD), Q2, run scripts/setup.sh, open the first PR.
+
+**Broken / not verified**
+- scripts/screenshot.sh cannot run here (no X11/Wayland; only --headless works). Untested until a machine with a display or xvfb.
+- Jump buffer fires one physics frame after landing is detected (grounded is read at step start) — acceptable feel, documented in player.gd; revisit if playtest says "sticky".
+
 ## Session 1 — 2026-09-14 — Phase -1 bootstrap
 **Done**
 - Monorepo skeleton created per docs/WORKPLAN.md §2 (client/, server/, packages/shared-rules/, scripts/, .claude/, docs/).

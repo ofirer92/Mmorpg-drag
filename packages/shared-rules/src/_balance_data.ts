@@ -73,7 +73,30 @@ export const CLASSES = {
   }
 } as const;
 
-export const ITEMS = {
+export interface ItemDef {
+  name_key: string;
+  slot: string;
+  rarity: string;
+  value: number;
+}
+
+export interface LootEntry {
+  item: string | null;
+  weight: number;
+}
+
+export interface LootTable {
+  rolls: number;
+  entries: LootEntry[];
+}
+
+export interface ItemsData {
+  version: number;
+  items: Record<string, ItemDef>;
+  loot_tables: Record<string, LootTable>;
+}
+
+export const ITEMS: ItemsData = {
   "version": 1,
   "items": {
     "expired_bandage": {
@@ -98,7 +121,7 @@ export const ITEMS = {
       ]
     }
   }
-} as const;
+};
 
 export const MONSTERS = {
   "version": 1,

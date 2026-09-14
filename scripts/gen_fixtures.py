@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Regenerate packages/shared-rules/tests/fixtures/xp_curve.json from docs/balance/xp_curve.yaml.
-The fixture is asserted by both Vitest (TS) and GUT (generated GDScript) — the T-I.5 parity proof."""
+"""Regenerate packages/shared-rules/tests/fixtures/xp_curve.json from docs/balance/xp_curve.yaml,
+and packages/shared-rules/tests/fixtures/combat.json (damage() + roll_loot() cases).
+The fixtures are asserted by both Vitest (TS) and GUT (generated GDScript) — the T-I.5 parity proof."""
 
 from __future__ import annotations
 
@@ -12,6 +13,139 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "packages/shared-rules/tests/fixtures/xp_curve.json"
+COMBAT_OUT = ROOT / "packages/shared-rules/tests/fixtures/combat.json"
+
+# Kept in sync BY HAND with packages/shared-rules/src/_constants.ts. If those change, update here too.
+CRIT_CHANCE = 0.05
+CRIT_MULT = 1.5
+MIN_DAMAGE = 1
+
+
+def damage_py(attacker: dict, defender: dict, power: float, roll: float) -> int:
+    """Same formula as damage() in packages/shared-rules/src/combat.ts — keep both in sync."""
+    raw = attacker["attack"] * power - defender["defense"] * 0.5
+    base = max(MIN_DAMAGE, math.floor(raw))
+    level_diff = attacker["level"] - defender["level"]
+    diff_mult = 1 + max(-0.25, min(0.25, level_diff * 0.05))
+    scaled = math.floor(base * diff_mult)
+    if roll < CRIT_CHANCE:
+        scaled = math.floor(scaled * CRIT_MULT)
+    return max(MIN_DAMAGE, scaled)
+
+
+def roll_loot_py(table_id: str, roll: float, items: dict) -> str:
+    """Same formula as roll_loot() in packages/shared-rules/src/loot.ts — keep both in sync."""
+    table = items["loot_tables"].get(table_id)
+    if table is None:
+        return ""
+    total = sum(e["weight"] for e in table["entries"])
+    if total <= 0:
+        return ""
+    cumulative = 0.0
+    for e in table["entries"]:
+        cumulative += e["weight"]
+        if roll < cumulative / total:
+            return e["item"] or ""
+    return ""
+
+
+def gen_combat_fixture() -> None:
+    items = yaml.safe_load((ROOT / "docs/balance/items.yaml").read_text())
+    damage_cases = [
+        {
+            "attacker": {"attack": 20, "defense": 4, "level": 5, "hp": 90},
+            "defender": {"attack": 5, "defense": 5, "level": 5, "hp": 60},
+            "power": 1.0,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 20, "defense": 4, "level": 5, "hp": 90},
+            "defender": {"attack": 5, "defense": 5, "level": 5, "hp": 60},
+            "power": 1.0,
+            "roll": 0.049,
+        },
+        {
+            "attacker": {"attack": 20, "defense": 4, "level": 5, "hp": 90},
+            "defender": {"attack": 5, "defense": 5, "level": 5, "hp": 60},
+            "power": 1.0,
+            "roll": 0.05,
+        },
+        {
+            "attacker": {"attack": 1, "defense": 0, "level": 1, "hp": 10},
+            "defender": {"attack": 1, "defense": 100, "level": 1, "hp": 10},
+            "power": 1.0,
+            "roll": 0.9,
+        },
+        {
+            "attacker": {"attack": 12, "defense": 4, "level": 20, "hp": 90},
+            "defender": {"attack": 5, "defense": 1, "level": 1, "hp": 60},
+            "power": 1.0,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 12, "defense": 4, "level": 1, "hp": 90},
+            "defender": {"attack": 5, "defense": 1, "level": 20, "hp": 60},
+            "power": 1.0,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 10, "defense": 0, "level": 3, "hp": 50},
+            "defender": {"attack": 5, "defense": 0, "level": 3, "hp": 50},
+            "power": 1.0,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 10, "defense": 4, "level": 3, "hp": 50},
+            "defender": {"attack": 5, "defense": 5, "level": 3, "hp": 50},
+            "power": 0.0,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 10, "defense": 4, "level": 3, "hp": 50},
+            "defender": {"attack": 5, "defense": 5, "level": 3, "hp": 50},
+            "power": 2.5,
+            "roll": 0.5,
+        },
+        {
+            "attacker": {"attack": 12, "defense": 4, "level": 20, "hp": 90},
+            "defender": {"attack": 5, "defense": 1, "level": 1, "hp": 60},
+            "power": 1.0,
+            "roll": 0.01,
+        },
+    ]
+    for c in damage_cases:
+        c["expected"] = damage_py(c["attacker"], c["defender"], c["power"], c["roll"])
+
+    loot_cases = [
+        {"table_id": "common_trash", "roll": 0.0},
+        {"table_id": "common_trash", "roll": 0.1},
+        {"table_id": "common_trash", "roll": 0.5},
+        {"table_id": "common_trash", "roll": 0.699},
+        {"table_id": "common_trash", "roll": 0.7},
+        {"table_id": "common_trash", "roll": 0.71},
+        {"table_id": "common_trash", "roll": 0.85},
+        {"table_id": "common_trash", "roll": 0.999},
+        {"table_id": "does_not_exist", "roll": 0.1},
+        {"table_id": "does_not_exist", "roll": 0.9},
+    ]
+    for c in loot_cases:
+        c["expected"] = roll_loot_py(c["table_id"], c["roll"], items)
+
+    COMBAT_OUT.parent.mkdir(parents=True, exist_ok=True)
+    COMBAT_OUT.write_text(
+        json.dumps(
+            {
+                "_comment": "generated by scripts/gen_fixtures.py — damage()/roll_loot() cases, "
+                "computed in Python with the same formulas as packages/shared-rules/src/combat.ts "
+                "and loot.ts. Asserted by combat.test.ts, loot.test.ts AND client/tests/test_rules_combat.gd.",
+                "damage_cases": damage_cases,
+                "loot_cases": loot_cases,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    print(f"wrote {COMBAT_OUT.relative_to(ROOT)}: {len(damage_cases)} damage cases, {len(loot_cases)} loot cases")
 
 
 def main() -> int:
@@ -38,6 +172,7 @@ def main() -> int:
         + "\n"
     )
     print(f"wrote {OUT.relative_to(ROOT)}: level 10 = {xp[10]}, level 30 total = {totals[30]}")
+    gen_combat_fixture()
     return 0
 
 

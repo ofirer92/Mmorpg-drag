@@ -19,12 +19,12 @@
 - [x] T-I.8 | doc-keeper | All Skills written | test: 6 skill folders with SKILL.md
 
 ## Phase 0 — פרוטוטייפ Single-player
-- [ ] in-progress T-0.1 | godot-dev | Player: movement, jump, coyote-time, jump buffer (constants from RulesMovement) | test: client/tests/test_player_movement.gd
-- [ ] in-progress T-0.2 | godot-dev | Player state machine (Idle/Run/Jump/Attack/Hurt/Dead) | test: client/tests/test_state_machine.gd
+- [x] T-0.1 | godot-dev | Player: movement, jump, coyote-time, jump buffer (constants from RulesMovement) | test: client/tests/test_player_movement.gd (10 tests)
+- [x] T-0.2 | godot-dev | Player state machine (Idle/Run/Jump/Attack/Hurt/Dead) | test: client/tests/test_state_machine.gd (7 tests)
 - [ ] ready T-0.3 | godot-dev + art-pipeline | One map (TileMapLayer) 60×20 tiles with platforms | test: screenshot in docs/screenshots/
-- [ ] in-progress T-0.4 | godot-dev | Camera with deadzone + map limits | test: client/tests/test_camera.gd
+- [x] T-0.4 | godot-dev | Camera with deadzone + map limits | test: client/tests/test_camera.gd (4 tests)
 - [ ] ready T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: screenshot at 390×844
-- [ ] in-progress T-0.6 | server-dev | shared-rules: damage(), xp_for_level(), roll_loot() | test: 30+ vitest unit tests + GUT parity fixture
+- [x] T-0.6 | server-dev | shared-rules: damage(), xp_for_level(), roll_loot() (+movement) | test: 64 vitest tests + client/tests/test_rules_combat.gd parity fixture
 - [ ] blocked T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items | test: validate_balance + balance_sim green | reason: waiting Q1 (real GDD) — skill names/mechanics are product decisions
 - [ ] ready T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: GUT test + feel documented in PROGRESS
 - [ ] ready T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: 3 kinds on the map
@@ -38,3 +38,5 @@
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
 - T-I.3/T-I.4/T-I.5: PASS — vitest 18 tests, GUT 6 tests/102 asserts, TS and generated GDScript agree on xp_for_level(1..30) and totals via packages/shared-rules/tests/fixtures/xp_curve.json.
 - T-I.6: PASS — guard_bash.sh blocked a real recursive delete during the bootstrap session.
+- T-0.1/T-0.2/T-0.4: PASS — 21 new GUT tests (movement incl. coyote/buffer/jump-cut boundaries, all 6 state transitions, camera deadzone + limits); player.gd has no movement literals (9 RulesMovement calls). No screenshot: sandbox has no display server — T-0.3's screenshot DoD needs a human or a CI job with xvfb.
+- T-0.6: PASS — 50 new vitest tests (combat 18+3 QA, loot 10, movement 22); TS ↔ GDScript parity on 10 damage + 10 loot cases via fixtures/combat.json; QA added: power ≤ 0 / absurd defense / roll == 1 never go below MIN_DAMAGE. Translator gained `for…of` and `X[k] == null → X.get(k)` (ADR-012).

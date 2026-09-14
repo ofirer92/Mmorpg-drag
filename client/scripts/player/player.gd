@@ -1,0 +1,139 @@
+class_name Player
+extends CharacterBody2D
+## T-0.1: moves, jumps, coyote-time, jump-buffer. All numbers come from
+## RulesMovement (client/scripts/rules/movement.gd, generated) — never a
+## literal speed/gravity/jump value here.
+## T-0.2: drives a StateMachine (Idle/Run/Jump/Attack/Hurt/Dead) for animation
+## only. This script never computes damage/XP/drop — the server does that.
+
+const SPRITE_COLUMNS: int = 4
+const ANIM_ROWS: Dictionary = {
+	&"idle": {"row": 0, "frames": 2},
+	&"run": {"row": 1, "frames": 4},
+	&"jump": {"row": 2, "frames": 1},
+	&"attack": {"row": 3, "frames": 3},
+	&"hurt": {"row": 4, "frames": 1},
+	&"dead": {"row": 5, "frames": 1},
+}
+## Time between animation frames — display timing only, not a balance number.
+const FRAME_DURATION_S: float = 0.12
+
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var state_machine: StateMachine = $StateMachine
+
+## -1..1 horizontal input, read from InputMap unless set_input() was called.
+var input_dir: float = 0.0
+## True for exactly one physics frame after an attack press; states consume it.
+var attack_requested: bool = false
+
+var _jump_held: bool = false
+var _jump_held_prev: bool = false
+## Seconds since jump was last pressed; negative means "no buffered press".
+var _time_since_jump_press: float = -1.0
+## Seconds since we were last on the floor; large means "never (yet)".
+var _time_since_floor: float = 999.0
+
+var _use_injected_input: bool = false
+var _injected_attack_pressed: bool = false
+
+var _anim_name: StringName = &"idle"
+var _anim_elapsed: float = 0.0
+
+
+func _ready() -> void:
+	play_animation(&"idle")
+
+
+func _physics_process(delta: float) -> void:
+	if not _use_injected_input:
+		_read_real_input()
+	_step_physics(delta)
+	_step_animation(delta)
+	_injected_attack_pressed = false
+
+
+## Test/AI hook: drive the player without real InputEvents.
+## dir: -1..1 horizontal intent. jump_pressed: true on the single frame the
+## jump button went down (edge, not held). jump_held: current held state,
+## used for coyote/jump-cut. attack_pressed: same edge semantics as jump_pressed.
+func set_input(dir: float, jump_pressed: bool, jump_held: bool, attack_pressed: bool = false) -> void:
+	_use_injected_input = true
+	input_dir = clampf(dir, -1.0, 1.0)
+	if jump_pressed:
+		_time_since_jump_press = 0.0
+	_jump_held = jump_held
+	if attack_pressed:
+		_injected_attack_pressed = true
+
+
+func _read_real_input() -> void:
+	input_dir = Input.get_axis("move_left", "move_right")
+	if Input.is_action_just_pressed("jump"):
+		_time_since_jump_press = 0.0
+	_jump_held = Input.is_action_pressed("jump")
+	if Input.is_action_just_pressed("attack"):
+		_injected_attack_pressed = true
+
+
+func _step_physics(delta: float) -> void:
+	velocity.x = RulesMovement.step_horizontal(velocity.x, input_dir, delta)
+
+	var on_floor_before: bool = is_on_floor()
+	if on_floor_before:
+		_time_since_floor = 0.0
+	else:
+		_time_since_floor += delta
+
+	if _time_since_jump_press >= 0.0:
+		_time_since_jump_press += delta
+		if not RulesMovement.jump_buffered(_time_since_jump_press):
+			_time_since_jump_press = -1.0
+
+	var wants_jump: bool = _time_since_jump_press >= 0.0 and RulesMovement.jump_buffered(_time_since_jump_press)
+	if wants_jump and RulesMovement.can_jump(on_floor_before, _time_since_floor):
+		velocity.y = RulesMovement.JUMP_VELOCITY_PX
+		_time_since_jump_press = -1.0
+		_time_since_floor = RulesMovement.COYOTE_TIME_S + 1.0
+	else:
+		velocity.y = RulesMovement.step_vertical(velocity.y, delta)
+
+	if _jump_held_prev and not _jump_held and velocity.y < 0.0:
+		velocity.y = RulesMovement.jump_cut(velocity.y)
+	_jump_held_prev = _jump_held
+
+	if _injected_attack_pressed:
+		attack_requested = true
+
+	move_and_slide()
+
+
+func _step_animation(delta: float) -> void:
+	_anim_elapsed += delta
+	var meta: Dictionary = ANIM_ROWS.get(_anim_name, ANIM_ROWS[&"idle"])
+	var frames: int = meta["frames"]
+	if frames <= 1:
+		return
+	if _anim_elapsed >= FRAME_DURATION_S:
+		_anim_elapsed = 0.0
+		var col: int = (sprite.frame - meta["row"] * SPRITE_COLUMNS + 1) % frames
+		sprite.frame = meta["row"] * SPRITE_COLUMNS + col
+
+
+## Called by states — never by game logic that decides damage/XP/loot.
+func play_animation(anim: StringName) -> void:
+	if anim == _anim_name:
+		return
+	_anim_name = anim
+	_anim_elapsed = 0.0
+	var meta: Dictionary = ANIM_ROWS.get(anim, ANIM_ROWS[&"idle"])
+	sprite.frame = meta["row"] * SPRITE_COLUMNS
+
+
+## Server told us we got hit. This does NOT compute damage — only shows it.
+func hurt() -> void:
+	state_machine.request_transition(&"Hurt")
+
+
+## Server told us HP hit 0. This does NOT compute death conditions.
+func die() -> void:
+	state_machine.request_transition(&"Dead")

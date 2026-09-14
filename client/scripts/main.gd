@@ -1,5 +1,6 @@
 extends Node2D
-## Entry scene. Phase -1: proves the project boots and the generated rules are callable.
+## Entry scene. Phase 0: boots into the flat-map prototype (player on a
+## single floor) and proves the generated rules are callable.
 
 
 func _ready() -> void:

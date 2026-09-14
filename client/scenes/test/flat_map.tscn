@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/flat_map.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2400, 64)
+
+[node name="FlatMap" type="Node2D"]
+script = ExtResource("1_map")
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(1200, 732)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(150, 685)

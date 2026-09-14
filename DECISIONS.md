@@ -6,60 +6,93 @@
 ---
 
 ## ADR-001 — Client: Godot 4.3+ / GDScript
+
 Date: 2026-09-14 · Status: accepted
 Context: need 2D platformer, mobile+desktop+web from one codebase, text-based source (AI-friendly).
 Decision: Godot 4.3+, GDScript with static typing everywhere.
 Consequences: GUT for tests; export presets per platform; `client/scripts/rules/` is generated, never hand-edited.
 
 ## ADR-002 — Server: Node.js 22 + TypeScript (strict)
+
 Date: 2026-09-14 · Status: accepted
 Context: fast iteration, strong AI support, rich ecosystem.
 Decision: Node 22, TS strict, no `any`, Zod on every external input. Vitest for tests. pnpm workspaces.
 Consequences: server and shared-rules share one toolchain.
 
 ## ADR-003 — Network: WebSocket (ws), JSON in phases 2–3, MessagePack in phase 4
+
 Date: 2026-09-14 · Status: accepted
 Context: debuggability first, efficiency later.
 Decision: `ws` library; JSON envelope `{t: string, ...}`; migrate to MessagePack in T-4.3.
 Consequences: docs/protocol.md is the source of truth; `check_protocol_sync.sh` enforces parity.
 
 ## ADR-004 — Persistence: PostgreSQL 16 + Redis 7, Drizzle ORM
+
 Date: 2026-09-14 · Status: accepted
 Context: GDD requirements; durable state + real-time state/pub-sub.
 Decision: Postgres for persistence, Redis for live state, Drizzle for type-safe schema + migrations-as-code.
 Consequences: migrations live in `server/drizzle/`; existing migration files are protected by hook.
 
 ## ADR-005 — Single source of game rules: packages/shared-rules → generated GDScript
+
 Date: 2026-09-14 · Status: accepted
 Context: client and server must never disagree on a number.
 Decision: all game math lives once in `packages/shared-rules/src/*.ts` (pure-function subset of TS) and is transpiled to `client/scripts/rules/*.gd` by `scripts/gen_rules.py`, which writes a sha256 header per file.
-Consequences: shared-rules code is restricted (no classes/closures/imports beyond the subset); balance numbers live in docs/balance/*.yaml and are read by shared-rules.
+Consequences: shared-rules code is restricted (no classes/closures/imports beyond the subset); balance numbers live in docs/balance/\*.yaml and are read by shared-rules.
 
 ## ADR-006 — CI: GitHub Actions running scripts/check.sh
+
 Date: 2026-09-14 · Status: accepted
 Decision: one workflow, one command. `check.sh` is the only definition of green.
 
 ## ADR-007 — Infra: Docker Compose (dev) → Fly.io / Hetzner (prod)
+
 Date: 2026-09-14 · Status: accepted
 Decision: compose for local dev; `scripts/deploy.sh staging|prod`; prod requires `CONFIRM=yes` and a human.
 
 ## ADR-008 — Placeholder art: procedural 32×32 pixel art + Kenney (CC0)
+
 Date: 2026-09-14 · Status: accepted
 Decision: `scripts/gen_sprite.py` generates spritesheets from YAML; archetype colours: Stim=yellow, Numb=blue-grey, Illusion=purple, Zen=green, Rage=red. Replacement needs tracked in docs/art_needed.md.
 
 ## ADR-009 — Task management: TASKS.md in repo (GitHub Issues optional)
+
 Date: 2026-09-14 · Status: accepted
 
 ## ADR-010 — Libraries approved for the initial skeleton
+
 Date: 2026-09-14 · Status: accepted
+
 - server: `ws`, `zod`, `drizzle-orm`, `postgres`, `ioredis`, `pino`; dev: `typescript`, `vitest`, `tsx`, `eslint`, `prettier`, `drizzle-kit`, `@types/node`, `@types/ws`
 - shared-rules: `zod`; dev: `typescript`, `vitest`
 - python scripts: `pyyaml`, `pillow`, `ruff`
 - client: GUT addon (MIT)
-Any addition beyond this list needs a new ADR.
+  Any addition beyond this list needs a new ADR.
 
 ## ADR-011 — Client tests skip (with warning) when godot binary is absent
+
 Date: 2026-09-14 · Status: accepted
 Context: not every dev/AI environment has Godot installed; check.sh must still be runnable.
 Decision: `scripts/test_client.sh` exits 0 with a loud warning when `godot` is missing, unless `STRICT_CLIENT=1` (set in CI), in which case it fails.
 Consequences: a local green is weaker than CI green; CI is authoritative.
+
+## ADR-012 — RulesScript translator: `for (const x of ARR)` support (for loot.ts)
+
+Date: 2026-09-14 · Status: accepted
+Context: `roll_loot()` (T-0.6) needs to walk `docs/balance/items.yaml` loot-table entries
+(an array of `{item, weight}` objects) cumulatively. The translator only understood the
+numeric `for (let i = a; i < b; i++)` loop, which can't iterate an array of objects.
+Decision: extend `scripts/gen_rules.py`'s `translate()` with one more line pattern —
+`for (const x of EXPR) { ... }` → `for x in EXPR:` — reusing the existing expression
+translator (imports/Math/operators) for `EXPR`. No new syntax elsewhere; bracket index
+access (`X[key]`) needed no change since it is already valid, identical syntax in GDScript.
+To make `ITEMS.loot_tables[table_id]` type-check under TS strict + `noUncheckedIndexedAccess`
+(the literal-keyed `as const` type has no index signature for a dynamic `string` key),
+`gen_rules.py`'s balance-data generator (`gen_items_ts`) now special-cases the `ITEMS` constant:
+it declares `items`/`loot_tables` as `Record<string, ItemDef>` / `Record<string, LootTable>`
+and assigns the JSON literal directly against that contextual type (no `as`/`any` cast needed).
+Consequences: any future shared-rules function that needs to loop over a YAML-derived list of
+objects can use this pattern. Addendum (same day): the translator also rewrites `X[key] == null` / `!= null` to
+`X.get(key) == null` / `!= null`, because GDScript's `dict[missing_key]` bracket access prints a
+non-fatal `SCRIPT ERROR` while `Dictionary.get()` returns null silently. Guard a dynamic lookup with
+`if (X[key] == null) { return ...; }` in TS and both sides stay quiet.
