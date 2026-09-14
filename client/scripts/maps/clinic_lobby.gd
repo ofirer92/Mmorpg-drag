@@ -82,6 +82,7 @@ const MONSTER_SPAWNS: Array[Dictionary] = [
 const RESPAWN_DELAY_S: float = 2.0
 
 const MonsterScene: PackedScene = preload("res://scenes/monsters/monster.tscn")
+const NpcScene: PackedScene = preload("res://scenes/npc/npc.tscn")
 
 @onready var tile_layer: TileMapLayer = $TileMapLayer
 @onready var spawn: Marker2D = $Spawn
@@ -94,6 +95,16 @@ var inventory: Inventory = null
 ## Emitted after a drop was picked up and added (or rejected when the bag is full).
 signal item_picked_up(item_id: String, added: bool)
 
+## T-0.12: NPCs live on this map (currently just the pharmacist), spawned in
+## _ready() from RulesBalanceData.NPCS's `map_cell` (docs/balance/npcs.yaml)
+## so the spawn point can never drift from the balance data. See
+## _spawn_npcs()/_cell_center() below — the same convention MONSTER_SPAWNS
+## uses.
+var npcs: Array[Npc] = []
+## Re-emitted from whichever Npc the player interacted with; main.gd owns
+## deciding what a given npc_id's dialogue/shop actually says.
+signal npc_interact_requested(npc_id: String)
+
 
 func _ready() -> void:
 	child_entered_tree.connect(_on_child_entered_tree)
@@ -104,6 +115,7 @@ func _ready() -> void:
 
 	player.set_local_server(local_server)
 	_spawn_monsters()
+	_spawn_npcs()
 	local_server.entity_died.connect(_on_entity_died)
 
 
@@ -114,6 +126,24 @@ func _spawn_monsters() -> void:
 		monster.position = _cell_center(entry.cell)
 		add_child(monster)
 		monster.setup(local_server, player)
+
+
+func _spawn_npcs() -> void:
+	var all_npcs: Dictionary = RulesBalanceData.NPCS.get("npcs", {})
+	for npc_id: String in all_npcs.keys():
+		var def: Dictionary = all_npcs[npc_id]
+		var cell_arr: Array = def.get("map_cell", [0, 0])
+		var cell: Vector2i = Vector2i(int(cell_arr[0]), int(cell_arr[1]))
+		var npc: Npc = NpcScene.instantiate()
+		npc.npc_id = npc_id
+		npc.position = _cell_center(cell)
+		add_child(npc)
+		npc.interact_requested.connect(_on_npc_interact_requested)
+		npcs.append(npc)
+
+
+func _on_npc_interact_requested(npc_id: String) -> void:
+	npc_interact_requested.emit(npc_id)
 
 
 func _cell_center(cell: Vector2i) -> Vector2:

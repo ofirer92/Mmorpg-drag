@@ -16,4 +16,8 @@ npcs:
       - expired_prescription
       - rubber_stamp_sword
       - intern_coat
-    map_cell: [6, 17]   # clinic_lobby tile cell (x, y) — standing on the ground row
+    map_cell: [6, 18]   # clinic_lobby tile cell (x, y) — row 18 is the empty air cell
+    # directly above the solid ground row (row 19, see LAYOUT in clinic_lobby.gd),
+    # same convention client/scripts/maps/clinic_lobby.gd's MONSTER_SPAWNS uses for
+    # ground-level monsters — fixed from an off-by-one placeholder ([6, 17] sat
+    # inside a platform tile) while wiring T-0.12.

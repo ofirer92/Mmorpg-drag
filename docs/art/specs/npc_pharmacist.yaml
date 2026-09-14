@@ -1,0 +1,9 @@
+# Placeholder spritesheet spec for the pharmacist NPC (T-0.12). A single
+# static idle frame — NPCs don't move in Phase 0. Colour: pale clinic beige
+# (matches the "waiting room" palette, distinct from any monster/archetype
+# colour so the NPC reads as furniture, not a threat).
+name: npc_pharmacist
+size: 32
+colour: "#E8E4D8"
+frames:
+  idle: 1

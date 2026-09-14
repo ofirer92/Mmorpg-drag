@@ -9,3 +9,4 @@ Maintained by the `art-pipeline` agent. Every generated asset in `client/assets/
 | client/assets/generated/monster_side_effect_slime.png | gen_sprite.py docs/art/specs/monster_side_effect_slime.yaml | 32px, idle×2, run×4, attack×3, hurt×1, dead×1, #8FA872 | placeholder |
 | client/assets/generated/monster_lost_referral.png | gen_sprite.py docs/art/specs/monster_lost_referral.yaml | 32px, idle×2, run×4, attack×3, hurt×1, dead×1, #D8C6A0 | placeholder |
 | client/assets/generated/monster_form_27b.png | gen_sprite.py docs/art/specs/monster_form_27b.yaml | 32px, idle×2, run×4, attack×3, hurt×1, dead×1, #EDEAE0 | placeholder |
+| client/assets/generated/npc_pharmacist.png | gen_sprite.py docs/art/specs/npc_pharmacist.yaml | 32px, idle×1, #E8E4D8 | placeholder |

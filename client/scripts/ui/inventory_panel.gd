@@ -21,6 +21,7 @@ const EQUIP_SLOTS: Array[String] = ["weapon", "head", "body"]
 @onready var open_button: Button = $OpenButton
 @onready var root: Control = $Root
 @onready var title_label: Label = $Root/Window/Margin/Content/Header/TitleLabel
+@onready var money_label: Label = $Root/Window/Margin/Content/Header/MoneyLabel
 @onready var close_button: Button = $Root/Window/Margin/Content/Header/CloseButton
 @onready var weapon_button: Button = $Root/Window/Margin/Content/EquippedRow/WeaponButton
 @onready var head_button: Button = $Root/Window/Margin/Content/EquippedRow/HeadButton
@@ -54,6 +55,7 @@ func _ready() -> void:
 		btn.pressed.connect(_on_equip_slot_pressed.bind(slot))
 
 	_render_equipped_row()
+	_render_money_label()
 
 
 ## Binds this panel to `inventory` and does one initial render from its
@@ -61,8 +63,11 @@ func _ready() -> void:
 func bind(inventory: Inventory) -> void:
 	if _inventory != null and _inventory.changed.is_connected(_on_inventory_changed):
 		_inventory.changed.disconnect(_on_inventory_changed)
+	if _inventory != null and _inventory.money_changed.is_connected(_on_money_changed):
+		_inventory.money_changed.disconnect(_on_money_changed)
 	_inventory = inventory
 	_inventory.changed.connect(_on_inventory_changed)
+	_inventory.money_changed.connect(_on_money_changed)
 	_selected_item_id = ""
 	_refresh()
 
@@ -87,12 +92,22 @@ func _on_inventory_changed() -> void:
 	_refresh()
 
 
+func _on_money_changed(_money: int) -> void:
+	_render_money_label()
+
+
 func _refresh() -> void:
 	_render_equipped_row()
+	_render_money_label()
 	_rebuild_bag_list()
 	if _inventory != null and _selected_item_id != "" and _inventory.count(_selected_item_id) <= 0:
 		_selected_item_id = ""
 	_update_comparison()
+
+
+func _render_money_label() -> void:
+	var money: int = _inventory.money if _inventory != null else 0
+	money_label.text = "%s: %d" % [I18n.t("ui.currency.name"), money]
 
 
 static func _item_name(item_id: String) -> String:

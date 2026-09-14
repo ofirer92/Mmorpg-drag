@@ -1,5 +1,21 @@
 # PROGRESS
 
+## Session 5 — 2026-09-14 — Phase 0: skills, pharmacist, shop, currency
+**Done**
+- Skill system (T-0.7): 5 placeholder Stim skills in classes.yaml, shared-rules skills.ts; LocalServer.request_skill gates unlock + cooldown on the server clock; attack = basic skill, skill button = selected skill; SkillBar UI with cooldowns and locked levels.
+- Pharmacist NPC + shop (T-0.12): npcs.yaml, 3 dialogue lines, talk prompt, dialogue box, buy/sell shop; currency "אישורי החזר" dropped by monsters (economy.ts roll_money) and saved with the bag. ADR-015.
+- Content: 10 items, money ranges per monster, validator covers skills/money/npcs.
+- Totals: vitest 84 + 7, GUT 200 (was 147). check.sh GREEN in strict mode. Screenshots: main (skill bar), shop, dialogue.
+
+**Next**
+- Phase 0 is feature-complete except T-0.14 (export, deferred by the human). Human checkpoint: 20-minute mobile playtest — "is it fun?" — gates Phase 1.
+- Phase 1 candidates that need no GDD: T-1.5 "טופס 27-ב" upgrade UI shell, T-1.7 item affixes (rules + loot), T-1.8 XP curve to level 30 (sim). T-1.1/1.2/1.3 (other archetypes) need Q1.
+- Polish gaps: block attacks while UI is open; NPC label overlaps platform tiles; consumable use has no cooldown.
+
+**Broken / not verified**
+- All skill/NPC/item/currency content is placeholder (Q3–Q6) — swap in docs/balance + docs/content only.
+- Export still unresolved: I18nBoot reads docs/content from outside the .pck (T-0.14 note).
+
 ## Session 4 — 2026-09-14 — Phase 0: progression, HUD, inventory, save
 **Done**
 - T-0.10 XP/level-up/HUD: LocalServer grants xp to the killer, levels via RulesXp, stats via RulesProgression (new shared-rules module + classes.yaml growth, Q4); 6 monsters live on clinic_lobby; HUD with HP/XP bars, stats panel, level-up flash.

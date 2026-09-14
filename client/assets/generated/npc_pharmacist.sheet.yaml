@@ -1,0 +1,5 @@
+size: 32
+rows:
+  idle:
+    row: 0
+    frames: 1

@@ -426,7 +426,7 @@ export const NPCS = {
       ],
       "map_cell": [
         6,
-        17
+        18
       ]
     }
   }

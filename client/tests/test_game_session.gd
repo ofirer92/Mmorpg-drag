@@ -108,3 +108,31 @@ func test_missing_or_corrupt_save_boots_fresh() -> void:
 	var main: Node2D = _boot(true)
 	assert_eq(main.clinic_lobby.local_server.get_level(Player.ENTITY_ID), 1.0)
 	assert_eq(main.inventory.slots().size(), 0)
+
+
+## T-0.12: money is part of Inventory.to_dict()/from_dict() (see
+## client/tests/test_inventory.gd for the module-level round trip); this
+## proves it actually survives a real quit-and-reload through main.gd.
+func test_money_is_saved_and_restored() -> void:
+	var main: Node2D = _boot(false)
+	main.inventory.add_money(42)
+	assert_eq(main.save_game(), OK)
+	main.queue_free()
+	await wait_frames(1)
+
+	var again: Node2D = _boot(true)
+	assert_eq(again.inventory.money, 42)
+
+
+## T-0.12: LocalServer.money_dropped(killer_id, amount) is only wired in
+## main.gd (this file's job to prove, not local_server.gd's — see ADR-013);
+## a kill by the player must land money in the bag.
+func test_money_dropped_from_a_kill_lands_in_inventory() -> void:
+	var main: Node2D = _boot(false)
+	var server: LocalServer = main.clinic_lobby.local_server
+	var money_before: int = main.inventory.money
+	server.register("test_victim", {"attack": 0.0, "defense": 0.0, "hp": 1.0, "money": {"min": 5, "max": 5}})
+
+	server.request_attack(Player.ENTITY_ID, "test_victim", 9999.0)
+
+	assert_eq(main.inventory.money, money_before + 5)

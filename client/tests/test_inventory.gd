@@ -256,3 +256,83 @@ func test_equipped_changed_signal_carries_slot_and_item() -> void:
 	assert_signal_emitted_with_parameters(inv, "equipped_changed", ["weapon", WEAPON_1])
 	inv.unequip("weapon")
 	assert_signal_emitted_with_parameters(inv, "equipped_changed", ["weapon", ""])
+
+
+## --- T-0.12 money -----------------------------------------------------------
+
+
+func test_money_starts_at_zero() -> void:
+	var inv: Inventory = Inventory.new()
+	assert_eq(inv.money, 0)
+
+
+func test_add_money_increases_balance() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(10)
+	inv.add_money(5)
+	assert_eq(inv.money, 15)
+
+
+func test_add_money_ignores_non_positive_amounts() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(10)
+	inv.add_money(0)
+	inv.add_money(-5)
+	assert_eq(inv.money, 10)
+
+
+func test_spend_money_decreases_balance_when_affordable() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(20)
+	assert_true(inv.spend_money(12))
+	assert_eq(inv.money, 8)
+
+
+func test_spend_money_refused_when_not_enough_never_goes_negative() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(5)
+	assert_false(inv.spend_money(6))
+	assert_eq(inv.money, 5)
+
+
+func test_spend_money_refused_for_non_positive_amounts() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(5)
+	assert_false(inv.spend_money(0))
+	assert_false(inv.spend_money(-3))
+	assert_eq(inv.money, 5)
+
+
+func test_money_never_goes_negative_however_it_is_spent() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.spend_money(1)  # nothing to spend
+	assert_eq(inv.money, 0)
+	assert_true(inv.money >= 0)
+
+
+func test_money_changed_signal_emitted_on_add_and_spend() -> void:
+	var inv: Inventory = Inventory.new()
+	watch_signals(inv)
+	inv.add_money(10)
+	assert_signal_emitted_with_parameters(inv, "money_changed", [10])
+	inv.spend_money(4)
+	assert_signal_emitted_with_parameters(inv, "money_changed", [6])
+
+
+func test_money_changed_not_emitted_when_add_or_spend_are_no_ops() -> void:
+	var inv: Inventory = Inventory.new()
+	watch_signals(inv)
+	inv.add_money(0)
+	inv.spend_money(1)  # can't afford
+	assert_signal_not_emitted(inv, "money_changed")
+
+
+func test_money_round_trips_through_to_dict_from_dict() -> void:
+	var inv: Inventory = Inventory.new()
+	inv.add_money(37)
+	var d: Dictionary = inv.to_dict()
+	assert_eq(int(d["money"]), 37)
+
+	var restored: Inventory = Inventory.new()
+	restored.from_dict(d)
+	assert_eq(restored.money, 37)

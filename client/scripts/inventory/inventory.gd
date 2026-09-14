@@ -18,9 +18,16 @@ extends RefCounted
 ##
 ## Unknown item ids are always rejected (false / no-op / all-zero dict) —
 ## never a crash, since this data can come from a hand-edited save file.
+##
+## T-0.12: `money` is the shop currency; add_money/spend_money keep it >= 0
+## always. ShopPanel is the only caller that mutates it via buy()/sell() —
+## everyone else (LocalServer.money_dropped) only ever calls add_money().
 
 signal changed
 signal equipped_changed(slot: String, item_id: String)
+## T-0.12: the shop currency ("אישורי החזר" — ui.currency.name). Emitted by
+## add_money/spend_money whenever the balance actually changes.
+signal money_changed(money: int)
 
 const EQUIP_SLOTS: Array[String] = ["weapon", "head", "body"]
 const STAT_KEYS: Array[String] = ["attack", "defense", "hp"]
@@ -29,6 +36,10 @@ const STAT_KEYS: Array[String] = ["attack", "defense", "hp"]
 
 ## slot(String) -> item_id(String) currently equipped in that slot.
 var equipped: Dictionary = {}
+
+## T-0.12: shop currency. Never goes negative — see add_money/spend_money.
+## Never a hardcoded price here; RulesEconomy computes buy/sell prices.
+var money: int = 0
 
 var _rows: Array[Dictionary] = []  # [{item_id: String, count: int}, ...]
 
@@ -147,6 +158,28 @@ func slots() -> Array[Dictionary]:
 	return out
 
 
+## --- money --------------------------------------------------------------------
+
+## Adds `amount` (e.g. LocalServer's money_dropped, or a shop refund) to the
+## balance. Non-positive amounts are a no-op — money never moves backwards
+## through add_money (use spend_money for that).
+func add_money(amount: int) -> void:
+	if amount <= 0:
+		return
+	money += amount
+	money_changed.emit(money)
+
+
+## Spends `amount`, never taking the balance below zero. Returns false (no
+## state change) if `amount` is non-positive or exceeds the current balance.
+func spend_money(amount: int) -> bool:
+	if amount <= 0 or amount > money:
+		return false
+	money -= amount
+	money_changed.emit(money)
+	return true
+
+
 ## --- equipment ----------------------------------------------------------------
 
 ## Moves one unit of `item_id` from the bag into its gear slot, swapping any
@@ -213,7 +246,7 @@ func compare(item_id: String) -> Dictionary:
 
 ## Plain-data snapshot for SaveGame. See SaveGame's header for the save shape.
 func to_dict() -> Dictionary:
-	return {"capacity": capacity, "slots": slots(), "equipped": equipped.duplicate()}
+	return {"capacity": capacity, "slots": slots(), "equipped": equipped.duplicate(), "money": money}
 
 
 ## Restores state written by to_dict(). Unknown item ids and malformed
@@ -236,4 +269,6 @@ func from_dict(d: Dictionary) -> void:
 			var item_id: String = String(loaded_equipped[slot])
 			if EQUIP_SLOTS.has(slot) and not _item_def(item_id).is_empty():
 				equipped[slot] = item_id
+	money = max(0, int(d.get("money", 0)))
 	changed.emit()
+	money_changed.emit(money)

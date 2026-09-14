@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/inventory_panel.gd" id="1_inv"]
+[ext_resource type="Script" path="res://scripts/ui/shop_panel.gd" id="1_shop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window"]
 bg_color = Color(0.12, 0.12, 0.15, 0.97)
@@ -14,21 +14,9 @@ corner_radius_top_right = 12
 corner_radius_bottom_left = 12
 corner_radius_bottom_right = 12
 
-[node name="InventoryPanel" type="CanvasLayer"]
-layer = 8
-script = ExtResource("1_inv")
-
-[node name="OpenButton" type="Button" parent="."]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -96.0
-offset_top = 120.0
-offset_right = -16.0
-offset_bottom = 160.0
-clip_text = true
-theme_override_font_sizes/font_size = 14
-text = "bag"
+[node name="ShopPanel" type="CanvasLayer"]
+layer = 12
+script = ExtResource("1_shop")
 
 [node name="Root" type="Control" parent="."]
 visible = false
@@ -82,72 +70,42 @@ custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "✕"
 
-[node name="EquippedRow" type="VBoxContainer" parent="Root/Window/Margin/Content"]
+[node name="TabsRow" type="HBoxContainer" parent="Root/Window/Margin/Content"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 8
 
-[node name="WeaponButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="StockTabButton" type="Button" parent="Root/Window/Margin/Content/TabsRow"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_horizontal = 3
 clip_text = true
 theme_override_font_sizes/font_size = 13
-text = "weapon"
+text = "stock"
 
-[node name="HeadButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
-custom_minimum_size = Vector2(0, 36)
+[node name="BagTabButton" type="Button" parent="Root/Window/Margin/Content/TabsRow"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+size_flags_horizontal = 3
 clip_text = true
 theme_override_font_sizes/font_size = 13
-text = "head"
-
-[node name="BodyButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-clip_text = true
-theme_override_font_sizes/font_size = 13
-text = "body"
+text = "bag"
 
 [node name="Separator" type="HSeparator" parent="Root/Window/Margin/Content"]
 layout_mode = 2
 
-[node name="BagScroll" type="ScrollContainer" parent="Root/Window/Margin/Content"]
-custom_minimum_size = Vector2(0, 260)
+[node name="ListScroll" type="ScrollContainer" parent="Root/Window/Margin/Content"]
+custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="BagList" type="VBoxContainer" parent="Root/Window/Margin/Content/BagScroll"]
+[node name="ListVBox" type="VBoxContainer" parent="Root/Window/Margin/Content/ListScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="EmptyLabel" type="Label" parent="Root/Window/Margin/Content"]
+[node name="StatusLabel" type="Label" parent="Root/Window/Margin/Content"]
 layout_mode = 2
 horizontal_alignment = 1
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "empty"
-
-[node name="ComparisonPanel" type="VBoxContainer" parent="Root/Window/Margin/Content"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="AttackDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "attack"
-
-[node name="DefenseDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "defense"
-
-[node name="HpDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "hp"
-
-[node name="ActionButton" type="Button" parent="Root/Window/Margin/Content/ComparisonPanel"]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "equip"
+text = ""
