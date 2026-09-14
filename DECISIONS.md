@@ -115,3 +115,22 @@ Decision: `screenshot.sh` wraps Godot in `xvfb-run` when no DISPLAY is set and f
 driver. `.github/workflows/ci.yml` installs `xvfb` and runs one screenshot as a smoke step (artifact
 uploaded). Screenshots committed under docs/screenshots/ are the DoD evidence for UI tasks.
 Consequences: xvfb is a system package (apt), not a project library; `setup.sh` mentions it for Linux.
+
+## ADR-015 — Skills are server-gated; currency and prices are rule-derived
+Date: 2026-09-14 · Status: accepted
+Context: T-0.7 adds usable skills, T-0.12 adds a shop. Both need numbers and gates that the client must
+not own.
+Decision:
+- Skill definitions live in docs/balance/classes.yaml (level, power, hits, cooldown, crash_hits,
+  range_px). Unlock and cooldown checks are pure rules (shared-rules skills.ts) evaluated by the
+  authority (LocalServer now, the real server in phase 2) on the server clock; the client only asks
+  `request_skill` and displays `skill_used` / `skill_rejected` / cooldown-left.
+- One currency ("אישורי החזר", key ui.currency.name). Monsters drop a uniform integer in their
+  monsters.yaml `money` range (economy.ts roll_money) decided by the authority on kill
+  (`money_dropped`); the client bag stores it. Prices are value × BUY_PRICE_MULT / SELL_PRICE_MULT
+  from shared-rules constants; never typed in UI code.
+- Placeholder content policy (Q3–Q6): when a task is blocked on the GDD but the human asks for features,
+  engineering placeholders are allowed if they (a) live only in docs/balance/*.yaml + docs/content, (b)
+  are marked ⚠️ PLACEHOLDER in the file, and (c) are logged as a Question for human in TASKS.md.
+Consequences: swapping content never touches code; phase 2 replaces LocalServer without changing the
+skill/shop UI.
