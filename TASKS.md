@@ -38,6 +38,31 @@
 - [x] T-0.13 | godot-dev | Local save (JSON) | test: client/tests/test_game_session.gd::test_quit_and_reload_keeps_state (+ test_save_game.gd 13)
 - [ ] deferred T-0.14 | devops | Export Android APK + Windows | test: APK runs (human confirms) | note: I18nBoot reads `res://../docs/content/*.yaml` — outside the .pck; export must copy content into client/ (or gen_rules emits a .gd table). Needs export templates (~1 GB download) + export_presets.cfg.
 
+## Phase 1 — מערכת מקצועות (engineering-only rows opened early; archetype rows wait on Q1)
+- [ ] blocked T-1.1 | game-designer | 4 more archetypes: full YAML (5 skills each) | test: sim: no archetype > 15% | reason: Q1
+- [ ] blocked T-1.2 | godot-dev ×4 | Unique mechanics: Numb / Illusion / Zen / Rage | test: one GUT test per mechanic | reason: Q1
+- [ ] blocked T-1.3 | godot-dev + game-designer | Archetype select screen with satirical text | test: screenshot | reason: Q1
+- [ ] blocked T-1.4 | game-designer | Level-10 branch: 2 "dosages" per archetype | test: YAML + sim | reason: Q1
+- [ ] ready T-1.5 | godot-dev | "טופס עלייה במינון 27-ב" bureaucratic upgrade UI (shell, wired to level-up) | test: screenshot
+- [ ] blocked T-1.6 | art-pipeline + game-designer + godot-dev | 3 new zones (10 monsters, 1 boss) | test: sim + screenshot | reason: Q1
+- [ ] in-progress T-1.7 | server-dev | Item affixes (10) — rules level: affixes.ts + YAML + parity fixture; client item instances follow as T-1.7b | test: vitest + GUT roll tests
+- [ ] ready T-1.7b | godot-dev | Inventory item instances with rolled affixes; drops carry affixes; comparison shows affix stats | test: GUT
+- [ ] blocked T-1.8 | game-designer | Final XP curve 1–30 | test: sim: level 30 ≈ 12 h | reason: needs T-1.6 monsters for a meaningful sim
+
+## Phase 2 — Multiplayer (engineering-only; started early because Phase 1 content is blocked on Q1)
+- [ ] in-progress T-2.1 | protocol-designer | protocol.md v1: join/leave/input/state/attack/damage/loot/chat + Zod + protocol.gd | test: check_protocol_sync green
+- [ ] ready T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: sim_clients 4
+- [ ] ready T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: 200 ms simulated latency, no jitter
+- [ ] ready T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
+- [ ] ready T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
+- [ ] ready T-2.6 | server-dev | Group XP bonus | test: shared-rules test
+- [ ] ready T-2.7 | godot-dev | Chat + quick emoji (mobile) | test: screenshot
+- [ ] ready T-2.8 | server-dev + qa | Disconnect/reconnect mid-fight | test: GUT/vitest
+- [ ] ready T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/
+
+## Polish (Phase 0 leftovers)
+- [ ] in-progress T-0.15 | godot-dev | Block attacks/skills while a dialogue, shop or inventory panel is open | test: GUT
+
 ### QA reports
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
 - T-I.3/T-I.4/T-I.5: PASS — vitest 18 tests, GUT 6 tests/102 asserts, TS and generated GDScript agree on xp_for_level(1..30) and totals via packages/shared-rules/tests/fixtures/xp_curve.json.

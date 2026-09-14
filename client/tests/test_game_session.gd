@@ -136,3 +136,26 @@ func test_money_dropped_from_a_kill_lands_in_inventory() -> void:
 	server.request_attack(Player.ENTITY_ID, "test_victim", 9999.0)
 
 	assert_eq(main.inventory.money, money_before + 5)
+
+
+# T-0.15: attacks and skills are ignored while any UI panel is open; movement still works.
+# main.gd polls the panels in _process, so this test awaits idle frames explicitly (GUT's
+# wait_frames() advances physics frames but not idle _process here).
+func test_open_panel_blocks_attacks_but_not_movement() -> void:
+	var main: Node2D = _boot(false)
+	var player: Player = main.clinic_lobby.player
+	main.inventory_panel.open()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_true(main.is_ui_open())
+	assert_true(player.ui_blocked)
+	player.set_input(1.0, false, false, true, true)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	assert_false(player.attack_requested, "attack ignored while UI open")
+	assert_false(player.skill_requested, "skill ignored while UI open")
+	assert_gt(player.velocity.x, 0.0, "movement still allowed")
+	main.inventory_panel.close()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert_false(player.ui_blocked)

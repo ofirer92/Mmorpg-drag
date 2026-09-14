@@ -48,6 +48,15 @@ func _ready() -> void:
 	print("Hamirpaa boot ok — level %d" % int(server.get_level(Player.ENTITY_ID)))
 
 
+## T-0.15: any open panel blocks attacks/skills (polled; panels have no open/close signals in common).
+func _process(_delta: float) -> void:
+	clinic_lobby.player.ui_blocked = is_ui_open()
+
+
+func is_ui_open() -> bool:
+	return inventory_panel.is_open() or shop_panel.is_open() or dialogue_box.is_open()
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		save_game()

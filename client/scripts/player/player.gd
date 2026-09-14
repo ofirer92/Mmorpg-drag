@@ -51,6 +51,9 @@ var facing: float = 1.0
 var input_dir: float = 0.0
 ## True for exactly one physics frame after an attack press; states consume it.
 var attack_requested: bool = false
+## T-0.15: set by the scene while a dialogue/shop/inventory panel is open — attack and skill
+## presses are ignored (movement stays allowed so the player never feels stuck).
+var ui_blocked: bool = false
 ## True for exactly one physics frame after a skill_1 press; states consume it.
 var skill_requested: bool = false
 
@@ -310,10 +313,10 @@ func _step_physics(delta: float) -> void:
 		velocity.y = RulesMovement.jump_cut(velocity.y)
 	_jump_held_prev = _jump_held
 
-	if _injected_attack_pressed:
+	if _injected_attack_pressed and not ui_blocked:
 		attack_requested = true
 		_next_attack_kind = "basic"
-	if _injected_skill_pressed:
+	if _injected_skill_pressed and not ui_blocked:
 		skill_requested = true
 		_next_attack_kind = "selected"
 
