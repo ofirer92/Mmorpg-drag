@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/test/arena.gd" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/combat/local_server.gd" id="3_server"]
 [ext_resource type="PackedScene" path="res://scenes/monsters/monster.tscn" id="4_monster"]
+[ext_resource type="PackedScene" path="res://scenes/ui/skill_bar.tscn" id="5_skillbar"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(2400, 64)
@@ -34,3 +35,5 @@ monster_id = "lost_referral"
 [node name="Form27b" parent="." instance=ExtResource("4_monster")]
 position = Vector2(2000, 685)
 monster_id = "form_27b"
+
+[node name="SkillBar" parent="." instance=ExtResource("5_skillbar")]

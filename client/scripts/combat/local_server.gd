@@ -28,12 +28,27 @@ signal level_up(id: String, new_level: float, stats: Dictionary)
 signal healed(id: String, amount: float, new_hp: float)
 ## T-0.12: currency the killer receives for a kill (RulesEconomy.roll_money over monsters.yaml money).
 signal money_dropped(killer_id: String, amount: float)
+## T-0.7: a progression entity's skill intent (request_skill) was accepted —
+## `cooldown` is the skill's own cooldown (seconds), echoed for UI feedback.
+signal skill_used(id: String, skill_id: String, cooldown: float)
+## T-0.7: a request_skill() intent was refused. `reason` is one of
+## "unknown" (bad entity/skill id or a non-progression attacker),
+## "dead" (attacker is dead), "locked" (player level too low for the skill),
+## "cooldown" (skill not ready yet).
+signal skill_rejected(id: String, skill_id: String, reason: String)
 
 ## Seeded so tests can predict rolls: create a second RandomNumberGenerator
 ## with the same seed and call randf() the same number of times.
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _entities: Dictionary = {}
+
+## Server clock, seconds — advances via _physics_process(delta) (see
+## client/tests/test_local_server.gd's simulate() usage) or a direct jump via
+## advance_time() for skill-cooldown tests that don't want to simulate every
+## frame. Skill cooldowns are timestamped against this clock, never against
+## OS time (mirrors the future networked server's tick clock).
+var _time: float = 0.0
 
 
 func _ready() -> void:
@@ -43,6 +58,13 @@ func _ready() -> void:
 ## Tests call this before any request_attack() to make rolls predictable.
 func seed_rng(value: int) -> void:
 	rng.seed = value
+
+
+## Test hook: jump the server clock forward without stepping physics frames
+## (crash timers are untouched — use simulate(server, frames, delta) instead
+## if a test also needs the crash countdown to progress).
+func advance_time(seconds: float) -> void:
+	_time += seconds
 
 
 ## stats: attack, defense, level, hp (= max hp). Optional: archetype (only
@@ -99,6 +121,7 @@ func register(id: String, stats: Dictionary, progression_archetype: String = "")
 		"base_stats": base,
 		"growth_stats": growth,
 		"gear": {"attack": 0.0, "defense": 0.0, "hp": 0.0},
+		"last_use": {},
 	}
 
 
@@ -280,6 +303,102 @@ func _combat_view(e: Dictionary) -> Dictionary:
 	return {"attack": e.attack, "defense": e.defense, "level": e.level, "hp": e.hp}
 
 
+## T-0.7: attacker's intent "use skill_id on target_ids" — the skill-system
+## counterpart to request_attack. Only progression entities (register(...,
+## progression_archetype)) have skills (monsters never do). Looks the skill up
+## in the attacker's archetype (docs/balance/classes.yaml
+## archetypes.<archetype>.skills), gates it server-side with RulesSkills
+## (skill_unlocked/skill_ready against `_time`), and on success re-uses
+## request_attack once per hit per target (so damage/crit/crash/xp/money all
+## keep working exactly like a plain attack) plus RulesSkills.skill_crash_hits
+## extra _register_landed_hit increments for the attacker (self-crash risk).
+## Returns true iff the intent was accepted; on rejection emits
+## skill_rejected(id, skill_id, reason) and does nothing else.
+func request_skill(attacker_id: String, target_ids: Array[String], skill_id: String) -> bool:
+	if not _entities.has(attacker_id):
+		skill_rejected.emit(attacker_id, skill_id, "unknown")
+		return false
+	var attacker: Dictionary = _entities[attacker_id]
+	if not attacker.has_progression:
+		skill_rejected.emit(attacker_id, skill_id, "unknown")
+		return false
+	var skill: Dictionary = _find_skill(attacker.archetype, skill_id)
+	if skill.is_empty():
+		skill_rejected.emit(attacker_id, skill_id, "unknown")
+		return false
+	if not attacker.alive:
+		skill_rejected.emit(attacker_id, skill_id, "dead")
+		return false
+	if not RulesSkills.skill_unlocked(float(skill.level), attacker.level):
+		skill_rejected.emit(attacker_id, skill_id, "locked")
+		return false
+	var cooldown: float = float(skill.cooldown)
+	var time_since_use: float = _time - _last_use_time(attacker, skill_id)
+	if not RulesSkills.skill_ready(time_since_use, cooldown):
+		skill_rejected.emit(attacker_id, skill_id, "cooldown")
+		return false
+
+	(attacker.last_use as Dictionary)[skill_id] = _time
+	skill_used.emit(attacker_id, skill_id, cooldown)
+
+	var power: float = float(skill.power)
+	var hits: int = int(skill.hits)
+	for target_id: String in target_ids:
+		if target_id == attacker_id:
+			continue
+		for i in range(hits):
+			request_attack(attacker_id, target_id, power)
+
+	var extra_crash_hits: int = int(RulesSkills.skill_crash_hits(skill))
+	for i in range(extra_crash_hits):
+		_register_landed_hit(attacker_id)
+
+	return true
+
+
+## No timestamp yet ("never used") reads as ready for any cooldown.
+func _last_use_time(e: Dictionary, skill_id: String) -> float:
+	return float((e.last_use as Dictionary).get(skill_id, -1000000.0))
+
+
+func _find_skill(archetype: String, skill_id: String) -> Dictionary:
+	if not RulesBalanceData.CLASSES.archetypes.has(archetype):
+		return {}
+	var skills: Array = RulesBalanceData.CLASSES.archetypes[archetype].skills
+	for skill: Dictionary in skills:
+		if String(skill.id) == skill_id:
+			return skill
+	return {}
+
+
+## Seconds left before `id` can use `skill_id` again (0 if ready/unknown).
+func skill_cooldown_left(id: String, skill_id: String) -> float:
+	if not _entities.has(id):
+		return 0.0
+	var e: Dictionary = _entities[id]
+	var skill: Dictionary = _find_skill(e.archetype, skill_id)
+	if skill.is_empty():
+		return 0.0
+	var time_since_use: float = _time - _last_use_time(e, skill_id)
+	return RulesSkills.skill_cooldown_left(time_since_use, float(skill.cooldown))
+
+
+## Skill ids `id` has reached the level for, in archetype skill order.
+## Empty for unknown/non-progression entities.
+func unlocked_skills(id: String) -> Array[String]:
+	var result: Array[String] = []
+	if not _entities.has(id):
+		return result
+	var e: Dictionary = _entities[id]
+	if not e.has_progression or not RulesBalanceData.CLASSES.archetypes.has(e.archetype):
+		return result
+	var skills: Array = RulesBalanceData.CLASSES.archetypes[e.archetype].skills
+	for skill: Dictionary in skills:
+		if RulesSkills.skill_unlocked(float(skill.level), e.level):
+			result.append(String(skill.id))
+	return result
+
+
 ## T-0.10: grants `victim`'s xp reward to whoever landed the killing blow —
 ## but ONLY if that killer was registered with a progression archetype
 ## (register(..., progression_archetype)). Monsters are registered without
@@ -337,6 +456,7 @@ func _register_landed_hit(attacker_id: String) -> void:
 ## node) so GUT's simulate(server, frames, delta) can drive it exactly —
 ## see client/tests/test_local_server.gd.
 func _physics_process(delta: float) -> void:
+	_time += delta
 	for id: String in _entities.keys():
 		var e: Dictionary = _entities[id]
 		if not e.crash_active:

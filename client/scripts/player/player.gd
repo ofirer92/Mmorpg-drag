@@ -37,6 +37,7 @@ const CRASH_SHAKE_PX: float = 2.0
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var state_machine: StateMachine = $StateMachine
 @onready var hit_box: Area2D = $HitBox
+@onready var hit_box_shape: CollisionShape2D = $HitBox/CollisionShape2D
 
 ## Set via set_local_server(); null means "no combat" (movement-only tests).
 var local_server: LocalServer = null
@@ -50,6 +51,13 @@ var facing: float = 1.0
 var input_dir: float = 0.0
 ## True for exactly one physics frame after an attack press; states consume it.
 var attack_requested: bool = false
+## True for exactly one physics frame after a skill_1 press; states consume it.
+var skill_requested: bool = false
+
+## T-0.7: the skill id the `skill_1` action sends. Defaults to "" (falls back
+## to the basic skill) — set_local_server() and level-ups update it to the
+## highest unlocked non-basic skill via _update_selected_skill().
+var selected_skill_id: String = ""
 
 var _jump_held: bool = false
 var _jump_held_prev: bool = false
@@ -60,6 +68,18 @@ var _time_since_floor: float = 999.0
 
 var _use_injected_input: bool = false
 var _injected_attack_pressed: bool = false
+var _injected_skill_pressed: bool = false
+
+## "basic" or "selected" — which skill the currently-queued/playing Attack
+## state should send; set when attack_requested/skill_requested go true,
+## consumed by perform_attack().
+var _next_attack_kind: String = "basic"
+## Set by perform_attack(), resolved one physics frame later (Area2D overlap
+## lists only reflect a CollisionShape2D resize on the NEXT physics step —
+## see _resolve_pending_attack()).
+var _attack_query_pending: bool = false
+var _pending_skill_id: String = ""
+var _default_hit_box_size: Vector2 = Vector2.ZERO
 
 var _anim_name: StringName = &"idle"
 var _anim_elapsed: float = 0.0
@@ -67,15 +87,19 @@ var _anim_elapsed: float = 0.0
 
 func _ready() -> void:
 	play_animation(&"idle")
+	if hit_box_shape != null and hit_box_shape.shape is RectangleShape2D:
+		_default_hit_box_size = (hit_box_shape.shape as RectangleShape2D).size
 
 
 func _physics_process(delta: float) -> void:
 	if not _use_injected_input:
 		_read_real_input()
 	_step_physics(delta)
+	_resolve_pending_attack()
 	_step_animation(delta)
 	_step_crash_visual()
 	_injected_attack_pressed = false
+	_injected_skill_pressed = false
 
 
 ## Attaches this player to a Phase 0 LocalServer (autoload-free — see
@@ -91,18 +115,77 @@ func set_local_server(server: LocalServer) -> void:
 	local_server.entity_died.connect(_on_entity_died)
 	local_server.crash_started.connect(_on_crash_started)
 	local_server.crash_ended.connect(_on_crash_ended)
+	local_server.level_up.connect(_on_level_up)
+	_update_selected_skill(local_server.get_level(ENTITY_ID))
 
 
-## Called by AttackState.enter() — sends one attack intent per Monster
-## currently overlapping the HitBox. Never computes damage itself.
+## Called by AttackState.enter(). Grows the HitBox to the chosen skill's
+## range_px and marks the query pending — never computes damage itself; the
+## actual request_skill() intent is sent one physics frame later, once the
+## resized Area2D's overlap list has caught up (see _resolve_pending_attack()).
 func perform_attack() -> void:
 	if local_server == null or hit_box == null:
 		return
-	var power: float = RulesBalanceData.CLASSES.archetypes.stim.skills[0].power
+	var skill_id: String = selected_skill_id if (_next_attack_kind == "selected" and selected_skill_id != "") else _basic_skill_id()
+	if skill_id == "":
+		return
+	_pending_skill_id = skill_id
+	_grow_hit_box(skill_id)
+	_attack_query_pending = true
+
+
+func _basic_skill_id() -> String:
+	var skills: Array = RulesBalanceData.CLASSES.archetypes.stim.skills
+	if skills.is_empty():
+		return ""
+	return String(skills[0].id)
+
+
+func _find_skill(skill_id: String) -> Dictionary:
+	for skill: Dictionary in RulesBalanceData.CLASSES.archetypes.stim.skills:
+		if String(skill.id) == skill_id:
+			return skill
+	return {}
+
+
+func _grow_hit_box(skill_id: String) -> void:
+	if hit_box_shape == null:
+		return
+	var shape: RectangleShape2D = hit_box_shape.shape as RectangleShape2D
+	if shape == null:
+		return
+	var skill: Dictionary = _find_skill(skill_id)
+	var range_px: float = float(skill.get("range_px", _default_hit_box_size.x))
+	shape.size = Vector2(range_px, _default_hit_box_size.y)
+	hit_box.position.x = (range_px * 0.5) * facing
+
+
+func _restore_hit_box() -> void:
+	if hit_box_shape == null:
+		return
+	var shape: RectangleShape2D = hit_box_shape.shape as RectangleShape2D
+	if shape != null:
+		shape.size = _default_hit_box_size
+	hit_box.position.x = HIT_BOX_OFFSET_X * facing
+
+
+## Reads the HitBox's overlap list (now caught up to the resize perform_attack
+## did last frame — see the class-level Area2D-timing note above), sends one
+## request_skill() intent covering every overlapping Monster, then restores
+## the HitBox to its default reach. A rejected/empty-target use does nothing
+## further — LocalServer.skill_rejected is the place to react to a refusal.
+func _resolve_pending_attack() -> void:
+	if not _attack_query_pending:
+		return
+	_attack_query_pending = false
+	var target_ids: Array[String] = []
 	for body: Node2D in hit_box.get_overlapping_bodies():
 		if body is Monster:
-			var monster: Monster = body
-			local_server.request_attack(ENTITY_ID, monster.get_entity_id(), power)
+			target_ids.append((body as Monster).get_entity_id())
+	_restore_hit_box()
+	if target_ids.is_empty() or local_server == null:
+		return
+	local_server.request_skill(ENTITY_ID, target_ids, _pending_skill_id)
 
 
 func _on_damage_dealt(target_id: String, _amount: float, _new_hp: float, _crit: bool) -> void:
@@ -125,6 +208,37 @@ func _on_crash_ended(id: String) -> void:
 		crashed = false
 
 
+func _on_level_up(id: String, new_level: float, _stats: Dictionary) -> void:
+	if id == ENTITY_ID:
+		_update_selected_skill(new_level)
+
+
+## Picks the highest-level unlocked non-basic skill as the skill_1 target.
+## "" (falls back to the basic skill in perform_attack()) if none unlocked yet.
+func _update_selected_skill(level: float) -> void:
+	var basic_id: String = _basic_skill_id()
+	var best_id: String = ""
+	var best_level: float = -1.0
+	for skill: Dictionary in RulesBalanceData.CLASSES.archetypes.stim.skills:
+		var sid: String = String(skill.id)
+		if sid == basic_id:
+			continue
+		var skill_level: float = float(skill.level)
+		if RulesSkills.skill_unlocked(skill_level, level) and skill_level > best_level:
+			best_level = skill_level
+			best_id = sid
+	selected_skill_id = best_id
+
+
+## UI hook (skill_bar.gd): try to make `skill_id` the skill_1 target. Refuses
+## (returns false, no change) if the server doesn't say it's unlocked yet.
+func select_skill(skill_id: String) -> bool:
+	if local_server == null or not local_server.unlocked_skills(ENTITY_ID).has(skill_id):
+		return false
+	selected_skill_id = skill_id
+	return true
+
+
 ## Display-only reaction to `crashed` — tint + a small shake. No game logic.
 func _step_crash_visual() -> void:
 	if crashed:
@@ -138,8 +252,10 @@ func _step_crash_visual() -> void:
 ## Test/AI hook: drive the player without real InputEvents.
 ## dir: -1..1 horizontal intent. jump_pressed: true on the single frame the
 ## jump button went down (edge, not held). jump_held: current held state,
-## used for coyote/jump-cut. attack_pressed: same edge semantics as jump_pressed.
-func set_input(dir: float, jump_pressed: bool, jump_held: bool, attack_pressed: bool = false) -> void:
+## used for coyote/jump-cut. attack_pressed/skill_pressed: same edge semantics
+## as jump_pressed — attack_pressed sends the basic skill, skill_pressed sends
+## selected_skill_id (see perform_attack()).
+func set_input(dir: float, jump_pressed: bool, jump_held: bool, attack_pressed: bool = false, skill_pressed: bool = false) -> void:
 	_use_injected_input = true
 	input_dir = clampf(dir, -1.0, 1.0)
 	if jump_pressed:
@@ -147,6 +263,8 @@ func set_input(dir: float, jump_pressed: bool, jump_held: bool, attack_pressed: 
 	_jump_held = jump_held
 	if attack_pressed:
 		_injected_attack_pressed = true
+	if skill_pressed:
+		_injected_skill_pressed = true
 
 
 func _read_real_input() -> void:
@@ -156,6 +274,8 @@ func _read_real_input() -> void:
 	_jump_held = Input.is_action_pressed("jump")
 	if Input.is_action_just_pressed("attack"):
 		_injected_attack_pressed = true
+	if Input.is_action_just_pressed("skill_1"):
+		_injected_skill_pressed = true
 
 
 func _step_physics(delta: float) -> void:
@@ -192,6 +312,10 @@ func _step_physics(delta: float) -> void:
 
 	if _injected_attack_pressed:
 		attack_requested = true
+		_next_attack_kind = "basic"
+	if _injected_skill_pressed:
+		skill_requested = true
+		_next_attack_kind = "selected"
 
 	move_and_slide()
 

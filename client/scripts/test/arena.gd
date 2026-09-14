@@ -13,12 +13,14 @@ const MAP_BOTTOM_Y: float = 900.0
 
 @onready var local_server: LocalServer = $LocalServer
 @onready var player: Player = $Player
+@onready var skill_bar: SkillBar = $SkillBar
 
 
 func _ready() -> void:
 	var cam: PlayerCamera = player.get_node("PlayerCamera")
 	cam.set_map_bounds(get_map_bounds())
 	player.set_local_server(local_server)
+	skill_bar.bind(local_server, player)
 	for child: Node in get_children():
 		if child is Monster:
 			(child as Monster).setup(local_server, player)
