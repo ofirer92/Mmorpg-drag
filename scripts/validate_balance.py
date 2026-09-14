@@ -12,6 +12,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 BAL, CONTENT = ROOT / "docs/balance", ROOT / "docs/content"
 ARCHETYPES = {"stim", "numb", "illusion", "zen", "rage"}
+ITEM_SLOTS = {"weapon", "head", "body", "consumable"}
+ITEM_RARITIES = {"common", "rare", "epic"}
+ITEM_STAT_KEYS = {"attack", "defense", "hp"}
 errors: list[str] = []
 
 
@@ -89,6 +92,18 @@ def main() -> int:
     for iid, it in items.items():
         require(it, ["name_key", "slot", "rarity", "value"], f"items.{iid}")
         keys_used.add(it.get("name_key", ""))
+        if it.get("slot") is not None and it["slot"] not in ITEM_SLOTS:
+            err(f"items.{iid}: slot must be one of {sorted(ITEM_SLOTS)}, got {it.get('slot')}")
+        if it.get("rarity") is not None and it["rarity"] not in ITEM_RARITIES:
+            err(f"items.{iid}: rarity must be one of {sorted(ITEM_RARITIES)}, got {it.get('rarity')}")
+        stats = it.get("stats")
+        if stats is not None:
+            if not isinstance(stats, dict) or set(stats) != ITEM_STAT_KEYS:
+                err(f"items.{iid}: stats must have exactly keys {sorted(ITEM_STAT_KEYS)}")
+            else:
+                for sk, sv in stats.items():
+                    if not isinstance(sv, (int, float)) or isinstance(sv, bool) or sv < 0:
+                        err(f"items.{iid}: stats.{sk} must be a non-negative number")
     for tid, t in tables.items():
         require(t, ["rolls", "entries"], f"loot_tables.{tid}")
         for e in t.get("entries", []):

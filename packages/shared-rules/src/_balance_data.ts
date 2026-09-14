@@ -98,11 +98,18 @@ export const CLASSES = {
   }
 } as const;
 
+export interface ItemStats {
+  attack: number;
+  defense: number;
+  hp: number;
+}
+
 export interface ItemDef {
   name_key: string;
   slot: string;
   rarity: string;
   value: number;
+  stats?: ItemStats;
 }
 
 export interface LootEntry {
@@ -128,7 +135,67 @@ export const ITEMS: ItemsData = {
       "name_key": "item.expired_bandage.name",
       "slot": "consumable",
       "rarity": "common",
-      "value": 3
+      "value": 3,
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 0
+      }
+    },
+    "rubber_stamp_sword": {
+      "name_key": "item.rubber_stamp_sword.name",
+      "slot": "weapon",
+      "rarity": "common",
+      "value": 12,
+      "stats": {
+        "attack": 4,
+        "defense": 0,
+        "hp": 0
+      }
+    },
+    "triplicate_dagger": {
+      "name_key": "item.triplicate_dagger.name",
+      "slot": "weapon",
+      "rarity": "rare",
+      "value": 30,
+      "stats": {
+        "attack": 7,
+        "defense": 0,
+        "hp": 0
+      }
+    },
+    "ethics_committee_cap": {
+      "name_key": "item.ethics_committee_cap.name",
+      "slot": "head",
+      "rarity": "common",
+      "value": 10,
+      "stats": {
+        "attack": 0,
+        "defense": 3,
+        "hp": 5
+      }
+    },
+    "liability_waiver_robe": {
+      "name_key": "item.liability_waiver_robe.name",
+      "slot": "body",
+      "rarity": "rare",
+      "value": 35,
+      "stats": {
+        "attack": 0,
+        "defense": 6,
+        "hp": 15
+      }
+    },
+    "placebo_pill": {
+      "name_key": "item.placebo_pill.name",
+      "slot": "consumable",
+      "rarity": "common",
+      "value": 5,
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 0
+      }
     }
   },
   "loot_tables": {
@@ -138,6 +205,26 @@ export const ITEMS: ItemsData = {
         {
           "item": "expired_bandage",
           "weight": 70
+        },
+        {
+          "item": "rubber_stamp_sword",
+          "weight": 3
+        },
+        {
+          "item": "triplicate_dagger",
+          "weight": 1
+        },
+        {
+          "item": "ethics_committee_cap",
+          "weight": 3
+        },
+        {
+          "item": "liability_waiver_robe",
+          "weight": 1
+        },
+        {
+          "item": "placebo_pill",
+          "weight": 7
         },
         {
           "item": null,

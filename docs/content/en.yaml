@@ -39,3 +39,6 @@ ui.hud.attack: Treatment Power
 ui.hud.defense: Admin Immunity
 ui.hud.stats: Medical File
 ui.hud.level_up: Dosage Increase Approved
+ui.inventory.stat.attack: Attack
+ui.inventory.stat.defense: Defense
+ui.inventory.stat.hp: Health

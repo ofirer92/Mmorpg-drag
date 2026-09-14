@@ -191,17 +191,17 @@
     {
       "table_id": "common_trash",
       "roll": 0.699,
-      "expected": "expired_bandage"
+      "expected": "placebo_pill"
     },
     {
       "table_id": "common_trash",
       "roll": 0.7,
-      "expected": ""
+      "expected": "placebo_pill"
     },
     {
       "table_id": "common_trash",
       "roll": 0.71,
-      "expected": ""
+      "expected": "placebo_pill"
     },
     {
       "table_id": "common_trash",

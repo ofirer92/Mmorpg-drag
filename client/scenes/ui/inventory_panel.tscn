@@ -1,0 +1,148 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/inventory_panel.gd" id="1_inv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window"]
+bg_color = Color(0.12, 0.12, 0.15, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.55, 0.6, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[node name="InventoryPanel" type="CanvasLayer"]
+layer = 8
+script = ExtResource("1_inv")
+
+[node name="OpenButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -96.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 56.0
+clip_text = true
+theme_override_font_sizes/font_size = 14
+text = "bag"
+
+[node name="Root" type="Control" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="Dim" type="ColorRect" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+color = Color(0, 0, 0, 0.55)
+
+[node name="Window" type="PanelContainer" parent="Root"]
+anchors_preset = 15
+anchor_left = 0.05
+anchor_top = 0.06
+anchor_right = 0.95
+anchor_bottom = 0.94
+theme_override_styles/panel = SubResource("StyleBoxFlat_window")
+
+[node name="Margin" type="MarginContainer" parent="Root/Window"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="Root/Window/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Root/Window/Margin/Content"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Root/Window/Margin/Content/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "title"
+
+[node name="CloseButton" type="Button" parent="Root/Window/Margin/Content/Header"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+text = "✕"
+
+[node name="EquippedRow" type="VBoxContainer" parent="Root/Window/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="WeaponButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 13
+text = "weapon"
+
+[node name="HeadButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 13
+text = "head"
+
+[node name="BodyButton" type="Button" parent="Root/Window/Margin/Content/EquippedRow"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 13
+text = "body"
+
+[node name="Separator" type="HSeparator" parent="Root/Window/Margin/Content"]
+layout_mode = 2
+
+[node name="BagScroll" type="ScrollContainer" parent="Root/Window/Margin/Content"]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BagList" type="VBoxContainer" parent="Root/Window/Margin/Content/BagScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="EmptyLabel" type="Label" parent="Root/Window/Margin/Content"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "empty"
+
+[node name="ComparisonPanel" type="VBoxContainer" parent="Root/Window/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="AttackDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "attack"
+
+[node name="DefenseDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "defense"
+
+[node name="HpDeltaLabel" type="Label" parent="Root/Window/Margin/Content/ComparisonPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "hp"
+
+[node name="ActionButton" type="Button" parent="Root/Window/Margin/Content/ComparisonPanel"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "equip"

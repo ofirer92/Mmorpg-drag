@@ -46,11 +46,18 @@ def load_balance() -> dict:
 # literal checked against that contextual type, so no `as`/`any` cast is needed. See ADR-012.
 def gen_items_ts(v: dict) -> str:
     lines = [
+        "export interface ItemStats {",
+        "  attack: number;",
+        "  defense: number;",
+        "  hp: number;",
+        "}",
+        "",
         "export interface ItemDef {",
         "  name_key: string;",
         "  slot: string;",
         "  rarity: string;",
         "  value: number;",
+        "  stats?: ItemStats;",
         "}",
         "",
         "export interface LootEntry {",

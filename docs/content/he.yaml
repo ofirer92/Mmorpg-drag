@@ -39,3 +39,6 @@ ui.hud.attack: עוצמת טיפול
 ui.hud.defense: חסינות מנהלית
 ui.hud.stats: תיק רפואי
 ui.hud.level_up: אושרה עלייה במינון
+ui.inventory.stat.attack: התקפה
+ui.inventory.stat.defense: הגנה
+ui.inventory.stat.hp: בריאות
