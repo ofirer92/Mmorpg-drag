@@ -17,3 +17,25 @@ ui.touch.attack: Treat
 ui.touch.skill: Protocol
 ui.touch.auto_attack: Auto-treat
 ui.title: Hamirpaa — prototype, phase 0 (not for medical use)
+item.rubber_stamp_sword.name: Rubber-Stamp Sword
+item.triplicate_dagger.name: Triplicate Dagger
+item.ethics_committee_cap.name: Ethics Committee Cap
+item.liability_waiver_robe.name: Liability-Waiver Robe
+item.placebo_pill.name: Placebo Pill
+ui.inventory.title: Inventory
+ui.inventory.open: Bag
+ui.inventory.equip: Equip
+ui.inventory.unequip: Unequip
+ui.inventory.use: Use
+ui.inventory.empty: Inventory empty. File an item request form, in triplicate.
+ui.inventory.slot.weapon: Weapon
+ui.inventory.slot.head: Head
+ui.inventory.slot.body: Body
+ui.inventory.close: Close
+ui.hud.hp: Fitness
+ui.hud.xp: Dosage Seniority
+ui.hud.level: Approval Rank
+ui.hud.attack: Treatment Power
+ui.hud.defense: Admin Immunity
+ui.hud.stats: Medical File
+ui.hud.level_up: Dosage Increase Approved

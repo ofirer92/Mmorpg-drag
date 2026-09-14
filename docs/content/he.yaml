@@ -17,3 +17,25 @@ ui.touch.attack: טיפול
 ui.touch.skill: נוהל
 ui.touch.auto_attack: טיפול אוטומטי
 ui.title: המרפאה — אב-טיפוס, שלב 0 (לא לשימוש רפואי)
+item.rubber_stamp_sword.name: חרב חותמת גומי
+item.triplicate_dagger.name: פגיון בשלושה עותקים
+item.ethics_committee_cap.name: כובע ועדת אתיקה
+item.liability_waiver_robe.name: חלוק ויתור אחריות
+item.placebo_pill.name: כדור פלצבו
+ui.inventory.title: מלאי
+ui.inventory.open: תיק
+ui.inventory.equip: צייד
+ui.inventory.unequip: הסר ציוד
+ui.inventory.use: השתמש
+ui.inventory.empty: המלאי ריק. נא להגיש טופס בקשת פריטים בשלושה עותקים.
+ui.inventory.slot.weapon: נשק
+ui.inventory.slot.head: ראש
+ui.inventory.slot.body: גוף
+ui.inventory.close: סגור
+ui.hud.hp: כשירות
+ui.hud.xp: ותק במינון
+ui.hud.level: דרגת אישור
+ui.hud.attack: עוצמת טיפול
+ui.hud.defense: חסינות מנהלית
+ui.hud.stats: תיק רפואי
+ui.hud.level_up: אושרה עלייה במינון

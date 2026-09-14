@@ -1,0 +1,103 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[node name="Hud" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+
+[node name="Panel" type="VBoxContainer" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 232.0
+offset_bottom = 348.0
+theme_override_constants/separation = 4
+mouse_filter = 2
+
+[node name="HpLabel" type="Label" parent="Panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "hp"
+
+[node name="HpBar" type="ProgressBar" parent="Panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 16)
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="XpLabel" type="Label" parent="Panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "xp"
+
+[node name="XpBar" type="ProgressBar" parent="Panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 10)
+min_value = 0.0
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="StatsToggleButton" type="Button" parent="Panel"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 28)
+toggle_mode = true
+clip_text = true
+theme_override_font_sizes/font_size = 12
+text = "stats"
+
+[node name="StatsPanel" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 2
+visible = false
+
+[node name="LevelDetailLabel" type="Label" parent="Panel/StatsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "level"
+
+[node name="HpDetailLabel" type="Label" parent="Panel/StatsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "hp"
+
+[node name="AttackDetailLabel" type="Label" parent="Panel/StatsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "attack"
+
+[node name="DefenseDetailLabel" type="Label" parent="Panel/StatsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "defense"
+
+[node name="XpDetailLabel" type="Label" parent="Panel/StatsPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "xp"
+
+[node name="LevelUpLabel" type="Label" parent="."]
+anchors_preset = 0
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -160.0
+offset_top = 16.0
+offset_right = 160.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+horizontal_alignment = 1
+visible = false
+text = "level up"
+
+[node name="LevelUpTimer" type="Timer" parent="."]
+one_shot = true

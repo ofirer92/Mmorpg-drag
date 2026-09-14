@@ -33,6 +33,20 @@ func request_transition(to: StringName) -> void:
 	_on_transition(to)
 
 
+## T-0.10: bypasses the terminal-state guard. ONLY for an engineering reset
+## like a respawn — never for gameplay transitions, which must keep going
+## through request_transition/_on_transition and respect is_terminal (Dead
+## staying Dead until something outside the state machine, like a respawn,
+## explicitly resets it).
+func force_enter(to: StringName) -> void:
+	if not states.has(to):
+		return
+	if current != null:
+		current.exit()
+	current = states[to]
+	current.enter(&"")
+
+
 func _on_transition(to: StringName) -> void:
 	if current == null or current.is_terminal:
 		return

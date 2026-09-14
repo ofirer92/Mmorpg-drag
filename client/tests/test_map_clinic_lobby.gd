@@ -104,6 +104,25 @@ func test_every_platform_is_reachable_in_principle() -> void:
 		)
 
 
+## T-0.10: 6 monsters wired onto the real map from MONSTER_SPAWNS, each in an
+## empty-air cell with a solid tile directly below it (so it lands on
+## something instead of falling through the floor forever).
+func test_monster_spawns_match_count_and_land_on_solid_ground() -> void:
+	var map: ClinicLobby = _spawn_map()
+	await wait_frames(1)
+	var monster_count: int = 0
+	for child: Node in map.get_children():
+		if child is Monster:
+			monster_count += 1
+	assert_eq(monster_count, ClinicLobby.MONSTER_SPAWNS.size(), "one Monster node per MONSTER_SPAWNS entry")
+
+	for entry: Dictionary in ClinicLobby.MONSTER_SPAWNS:
+		var cell: Vector2i = entry.cell
+		var below: Vector2i = cell + Vector2i(0, 1)
+		assert_false(SOLID_CHARS.has(ClinicLobby.LAYOUT[cell.y][cell.x]), "spawn cell %s is empty air" % cell)
+		assert_true(SOLID_CHARS.has(ClinicLobby.LAYOUT[below.y][below.x]), "cell below spawn %s is solid" % cell)
+
+
 func _col_gap(a: Dictionary, b: Dictionary) -> int:
 	if a["col_end"] < b["col_start"]:
 		return b["col_start"] - a["col_end"] - 1
@@ -131,3 +150,29 @@ func _solid_groups(layout: Array[String]) -> Array:
 				run_start = col
 				run_char = ch
 	return groups
+
+
+## T-0.10: monsters are placed on the real map from MONSTER_SPAWNS, not
+## hand-wired scene children — this asserts the count matches (at least 6
+## per the DoD) and, separately, that every spawn cell is valid: empty air
+## with a solid tile directly below it (so monsters spawn standing on
+## something, never inside a wall/platform or floating over a gap).
+func test_monster_count_matches_spawn_table() -> void:
+	var map: ClinicLobby = _spawn_map()
+	var monsters: Array = map.get_children().filter(func(c: Node) -> bool: return c is Monster)
+	assert_eq(monsters.size(), ClinicLobby.MONSTER_SPAWNS.size())
+	assert_gt(monsters.size(), 5, "at least 6 monsters on the map")
+
+
+func test_every_monster_spawn_cell_is_empty_air_over_a_solid_tile() -> void:
+	for entry: Dictionary in ClinicLobby.MONSTER_SPAWNS:
+		var cell: Vector2i = entry["cell"]
+		var row: String = ClinicLobby.LAYOUT[cell.y]
+		assert_eq(row[cell.x], ".", "spawn cell (%d,%d) for %s is empty air" % [cell.x, cell.y, entry["id"]])
+		var below_row_index: int = cell.y + 1
+		assert_lt(below_row_index, ClinicLobby.LAYOUT.size(), "spawn cell (%d,%d) has a row below it" % [cell.x, cell.y])
+		var below_char: String = ClinicLobby.LAYOUT[below_row_index][cell.x]
+		assert_true(
+			SOLID_CHARS.has(below_char),
+			"spawn cell (%d,%d) for %s has a solid tile directly below (got '%s')" % [cell.x, cell.y, entry["id"], below_char]
+		)

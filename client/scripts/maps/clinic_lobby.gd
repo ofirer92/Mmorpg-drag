@@ -60,9 +60,33 @@ const LAYOUT: Array[String] = [
 	"W##########################################################W",
 ]
 
+## T-0.10: monsters placed on the real map — id must match
+## docs/balance/monsters.yaml, cell is a LAYOUT (col, row) grid coordinate
+## that must be empty ('.') with a solid tile directly below it (row + 1),
+## enforced by client/tests/test_map_clinic_lobby.gd. 3 ground-level
+## side_effect_slime, 2 lost_referral near the mid platforms, 1 form_27b far
+## to the right (see LAYOUT above for the platform columns).
+const MONSTER_SPAWNS: Array[Dictionary] = [
+	{"id": "side_effect_slime", "cell": Vector2i(10, 18)},
+	{"id": "side_effect_slime", "cell": Vector2i(30, 18)},
+	{"id": "side_effect_slime", "cell": Vector2i(50, 18)},
+	{"id": "lost_referral", "cell": Vector2i(20, 10)},
+	{"id": "lost_referral", "cell": Vector2i(15, 12)},
+	{"id": "form_27b", "cell": Vector2i(55, 18)},
+]
+
+## Phase-0 default (see LocalServer.revive's doc comment for the "full hp,
+## no penalty" part of this choice): seconds between the player's
+## entity_died and the respawn-at-Spawn happening. Designer may want a
+## death screen / longer delay / xp penalty later.
+const RESPAWN_DELAY_S: float = 2.0
+
+const MonsterScene: PackedScene = preload("res://scenes/monsters/monster.tscn")
+
 @onready var tile_layer: TileMapLayer = $TileMapLayer
 @onready var spawn: Marker2D = $Spawn
 @onready var player: Player = $Player
+@onready var local_server: LocalServer = $LocalServer
 
 
 func _ready() -> void:
@@ -70,6 +94,36 @@ func _ready() -> void:
 	player.global_position = spawn.global_position
 	var cam: PlayerCamera = player.get_node("PlayerCamera")
 	cam.set_map_bounds(get_bounds())
+
+	player.set_local_server(local_server)
+	_spawn_monsters()
+	local_server.entity_died.connect(_on_entity_died)
+
+
+func _spawn_monsters() -> void:
+	for entry: Dictionary in MONSTER_SPAWNS:
+		var monster: Monster = MonsterScene.instantiate()
+		monster.monster_id = String(entry.id)
+		monster.position = _cell_center(entry.cell)
+		add_child(monster)
+		monster.setup(local_server, player)
+
+
+func _cell_center(cell: Vector2i) -> Vector2:
+	return Vector2(cell.x * TILE_SIZE + TILE_SIZE / 2.0, cell.y * TILE_SIZE + TILE_SIZE / 2.0)
+
+
+## T-0.10 phase-0 default: the player always respawns at Spawn, full hp,
+## after a flat delay — see MONSTER_SPAWNS/RESPAWN_DELAY_S doc comments and
+## LocalServer.revive(). Monster deaths are handled entirely inside
+## monster.gd (drop + queue_free), so this only reacts to the PLAYER dying.
+func _on_entity_died(id: String, _xp: float, _drop_item_id: String) -> void:
+	if id != Player.ENTITY_ID:
+		return
+	await get_tree().create_timer(RESPAWN_DELAY_S).timeout
+	local_server.revive(Player.ENTITY_ID)
+	player.global_position = spawn.global_position
+	player.respawn()
 
 
 func _build_tiles() -> void:

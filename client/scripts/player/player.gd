@@ -83,17 +83,10 @@ func _physics_process(delta: float) -> void:
 ## Never called → local_server stays null → no combat, ever (movement tests).
 func set_local_server(server: LocalServer) -> void:
 	local_server = server
-	var stim: Dictionary = RulesBalanceData.CLASSES.archetypes.stim
-	local_server.register(
-		ENTITY_ID,
-		{
-			"attack": stim.base_attack,
-			"defense": stim.base_defense,
-			"level": 1.0,
-			"hp": stim.base_hp,
-			"archetype": "stim",
-		}
-	)
+	## T-0.10: base/growth-derived stats now live in LocalServer.register()
+	## via the progression_archetype param — see local_server.gd — so this
+	## only needs to say "I'm a level-1 stim", never literal base numbers.
+	local_server.register(ENTITY_ID, {"level": 1.0}, "stim")
 	local_server.damage_dealt.connect(_on_damage_dealt)
 	local_server.entity_died.connect(_on_entity_died)
 	local_server.crash_started.connect(_on_crash_started)
@@ -233,3 +226,14 @@ func hurt() -> void:
 ## Server told us HP hit 0. This does NOT compute death conditions.
 func die() -> void:
 	state_machine.request_transition(&"Dead")
+
+
+## T-0.10: called by whoever owns the map (clinic_lobby.gd) AFTER it has
+## already told LocalServer to revive() this entity and moved this node to
+## the spawn point — this only resets the DISPLAY side (leaves Dead, clears
+## the crash tint/shake) via StateMachine.force_enter, which is the one
+## legitimate way out of a terminal state.
+func respawn() -> void:
+	velocity = Vector2.ZERO
+	crashed = false
+	state_machine.force_enter(&"Idle")
