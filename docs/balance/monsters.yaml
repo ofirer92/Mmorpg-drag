@@ -1,4 +1,7 @@
 # Monsters. TTK target for normal monsters: 3–8 s (balance-methodology skill).
+# ⚠️ side_effect_slime is from the WORKPLAN; lost_referral and form_27b are ENGINEERING PLACEHOLDERS for
+# T-0.9 (3 AI archetypes: patrol / chase / boss-ish). game-designer replaces names+numbers in T-0.7 after Q1.
+# ai_params: px, px/s, seconds. Read by the client monster AI through RulesBalanceData.MONSTERS.
 version: 1
 monsters:
   side_effect_slime:
@@ -11,3 +14,44 @@ monsters:
     xp: 12
     loot_table: common_trash
     ai: patrol
+    ai_params:
+      patrol_speed: 40
+      chase_speed: 70
+      aggro_radius: 160
+      attack_range: 28
+      leash_radius: 320
+      patrol_distance: 96
+  lost_referral:
+    name_key: monster.lost_referral.name
+    level: 2
+    hp: 80
+    attack: 7
+    defense: 2
+    attack_speed: 1.0
+    xp: 20
+    loot_table: common_trash
+    ai: chase
+    ai_params:
+      patrol_speed: 60
+      chase_speed: 120
+      aggro_radius: 260
+      attack_range: 30
+      leash_radius: 480
+      patrol_distance: 64
+  form_27b:
+    name_key: monster.form_27b.name
+    level: 3
+    hp: 140
+    attack: 9
+    defense: 4
+    attack_speed: 0.7
+    xp: 35
+    loot_table: common_trash
+    ai: patrol
+    ai_params:
+      patrol_speed: 30
+      chase_speed: 55
+      aggro_radius: 140
+      attack_range: 34
+      leash_radius: 260
+      patrol_distance: 128

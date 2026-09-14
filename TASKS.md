@@ -6,6 +6,7 @@
 
 ## Questions for human
 - [ ] Q1: docs/GDD.md הוא placeholder. יש להעתיק את ה-GDD האמיתי לריפו. (blocks all game-designer work in Phase 0)
+- [ ] Q3: monsters.yaml has 2 ENGINEERING PLACEHOLDER monsters (lost_referral, form_27b) so T-0.9 can show 3 AI kinds. game-designer replaces names/numbers in T-0.7. OK? (not blocking)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -21,13 +22,13 @@
 ## Phase 0 — פרוטוטייפ Single-player
 - [x] T-0.1 | godot-dev | Player: movement, jump, coyote-time, jump buffer (constants from RulesMovement) | test: client/tests/test_player_movement.gd (10 tests)
 - [x] T-0.2 | godot-dev | Player state machine (Idle/Run/Jump/Attack/Hurt/Dead) | test: client/tests/test_state_machine.gd (7 tests)
-- [ ] ready T-0.3 | godot-dev + art-pipeline | One map (TileMapLayer) 60×20 tiles with platforms | test: screenshot in docs/screenshots/
+- [ ] in-progress T-0.3 | godot-dev + art-pipeline | One map (TileMapLayer) 60×20 tiles with platforms | test: screenshot in docs/screenshots/
 - [x] T-0.4 | godot-dev | Camera with deadzone + map limits | test: client/tests/test_camera.gd (4 tests)
-- [ ] ready T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: screenshot at 390×844
+- [ ] in-progress T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: screenshot at 390×844
 - [x] T-0.6 | server-dev | shared-rules: damage(), xp_for_level(), roll_loot() (+movement) | test: 64 vitest tests + client/tests/test_rules_combat.gd parity fixture
 - [ ] blocked T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items | test: validate_balance + balance_sim green | reason: waiting Q1 (real GDD) — skill names/mechanics are product decisions
-- [ ] ready T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: GUT test + feel documented in PROGRESS
-- [ ] ready T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: 3 kinds on the map
+- [ ] in-progress T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: GUT test + feel documented in PROGRESS
+- [ ] in-progress T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: 3 kinds on the map
 - [ ] ready T-0.10 | godot-dev | XP, level-up, stats UI | test: level 10 in 15 min (simulation)
 - [ ] ready T-0.11 | godot-dev | Basic inventory + gear comparison | test: screenshot
 - [ ] blocked T-0.12 | game-designer + godot-dev | NPC "רוקח": 3 dialogue lines + shop | test: buy/sell tested | reason: waiting Q1

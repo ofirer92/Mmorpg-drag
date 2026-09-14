@@ -96,3 +96,22 @@ objects can use this pattern. Addendum (same day): the translator also rewrites 
 `X.get(key) == null` / `!= null`, because GDScript's `dict[missing_key]` bracket access prints a
 non-fatal `SCRIPT ERROR` while `Dictionary.get()` returns null silently. Guard a dynamic lookup with
 `if (X[key] == null) { return ...; }` in TS and both sides stay quiet.
+
+## ADR-013 — Phase 0 single-player combat runs in one "LocalServer" node
+Date: 2026-09-14 · Status: accepted (until T-2.9)
+Context: CLAUDE.md says the client never computes damage; WORKPLAN Phase 0 is a single-player prototype
+and T-2.9 later removes single-player logic ("local server mode").
+Decision: all combat resolution in the client lives in exactly one node, `client/scripts/combat/local_server.gd`,
+which mimics the future server API: entities send intents (`request_attack`) and receive facts (signals
+`damage_dealt`, `entity_died`, `crash_started/ended`). It is the only file outside `client/scripts/rules/`
+allowed to call `RulesCombat.damage` / `RulesLoot.roll_loot` / `RulesStatus.*` (enforced by grep in QA, and
+by T-2.9's DoD later).
+Consequences: Phase 2 replaces LocalServer with the network layer without touching player/monster scenes.
+
+## ADR-014 — Screenshots via xvfb; CI installs it
+Date: 2026-09-14 · Status: accepted
+Context: `scripts/screenshot.sh` needs a display; the AI sandbox and CI runners have none.
+Decision: `screenshot.sh` wraps Godot in `xvfb-run` when no DISPLAY is set and forces the Dummy audio
+driver. `.github/workflows/ci.yml` installs `xvfb` and runs one screenshot as a smoke step (artifact
+uploaded). Screenshots committed under docs/screenshots/ are the DoD evidence for UI tasks.
+Consequences: xvfb is a system package (apt), not a project library; `setup.sh` mentions it for Linux.

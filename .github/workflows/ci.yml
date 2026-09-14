@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install pyyaml pillow ruff
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1 libegl1 libxcursor1 libxinerama1 libxrandr2 libxi6
       - run: pnpm install --frozen-lockfile
       - name: Install Godot (headless)
         uses: chickensoft-games/setup-godot@v2
@@ -38,3 +39,8 @@ jobs:
       - run: pnpm lint
       - run: scripts/hooks/test_hooks.sh
       - run: scripts/check.sh
+      - name: Screenshot smoke (ADR-014)
+        run: scripts/screenshot.sh res://scenes/main.tscn ci_main 390x844
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: screenshots, path: docs/screenshots/*.png, if-no-files-found: ignore }

@@ -106,6 +106,17 @@ def main() -> int:
             err(f"monsters.{mid}: ai must be patrol|chase|boss")
         if m.get("hp", 1) <= 0:
             err(f"monsters.{mid}: hp must be > 0")
+        ai = m.get("ai_params")
+        if not isinstance(ai, dict):
+            err(f"monsters.{mid}: missing ai_params")
+        else:
+            require(
+                ai,
+                ["patrol_speed", "chase_speed", "aggro_radius", "attack_range", "leash_radius", "patrol_distance"],
+                f"monsters.{mid}.ai_params",
+            )
+            if ai.get("leash_radius", 0) < ai.get("aggro_radius", 0):
+                err(f"monsters.{mid}: leash_radius must be ≥ aggro_radius")
 
     for doc, name in ((xp, "xp_curve"), (classes, "classes"), (items_doc, "items"), (monsters, "monsters")):
         no_negatives(doc, name)

@@ -10,3 +10,5 @@ monster.side_effect_slime.name: Side-Effect Slime
 item.expired_bandage.name: Expired Bandage
 error.invalid_message: The submitted form is invalid. Please resubmit in triplicate.
 error.rate_limited: Daily inquiry quota exceeded. The clinic is closed for lunch.
+monster.lost_referral.name: Lost Referral
+monster.form_27b.name: Form 27-B

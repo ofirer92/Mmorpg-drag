@@ -26,6 +26,9 @@ if ! command -v godot >/dev/null; then
   esac
 fi
 
+echo "== xvfb (Linux, for scripts/screenshot.sh without a display — ADR-014)"
+if [[ "$(uname -s)" == "Linux" ]] && ! command -v xvfb-run >/dev/null; then sudo apt-get install -y -qq xvfb libgl1 || echo "(install xvfb manually)"; fi
+
 echo "== GUT addon $GUT_VERSION"
 if [[ ! -f client/addons/gut/gut_cmdln.gd ]]; then
   tmp=$(mktemp -d); git clone --quiet --depth 1 --branch "$GUT_VERSION" https://github.com/bitwes/Gut.git "$tmp/gut"

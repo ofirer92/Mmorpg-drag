@@ -135,7 +135,53 @@ export const MONSTERS = {
       "attack_speed": 0.8,
       "xp": 12,
       "loot_table": "common_trash",
-      "ai": "patrol"
+      "ai": "patrol",
+      "ai_params": {
+        "patrol_speed": 40,
+        "chase_speed": 70,
+        "aggro_radius": 160,
+        "attack_range": 28,
+        "leash_radius": 320,
+        "patrol_distance": 96
+      }
+    },
+    "lost_referral": {
+      "name_key": "monster.lost_referral.name",
+      "level": 2,
+      "hp": 80,
+      "attack": 7,
+      "defense": 2,
+      "attack_speed": 1.0,
+      "xp": 20,
+      "loot_table": "common_trash",
+      "ai": "chase",
+      "ai_params": {
+        "patrol_speed": 60,
+        "chase_speed": 120,
+        "aggro_radius": 260,
+        "attack_range": 30,
+        "leash_radius": 480,
+        "patrol_distance": 64
+      }
+    },
+    "form_27b": {
+      "name_key": "monster.form_27b.name",
+      "level": 3,
+      "hp": 140,
+      "attack": 9,
+      "defense": 4,
+      "attack_speed": 0.7,
+      "xp": 35,
+      "loot_table": "common_trash",
+      "ai": "patrol",
+      "ai_params": {
+        "patrol_speed": 30,
+        "chase_speed": 55,
+        "aggro_radius": 140,
+        "attack_range": 34,
+        "leash_radius": 260,
+        "patrol_distance": 128
+      }
     }
   }
 } as const;

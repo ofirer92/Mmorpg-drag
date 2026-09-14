@@ -10,3 +10,5 @@ monster.side_effect_slime.name: רירית תופעות לוואי
 item.expired_bandage.name: תחבושת שפג תוקפה
 error.invalid_message: הטופס שהוגש אינו תקין. נא להגיש מחדש בשלושה עותקים.
 error.rate_limited: חרגת ממכסת הפניות היומית. המרפאה סגורה לצהריים.
+monster.lost_referral.name: הפניה אבודה
+monster.form_27b.name: טופס 27-ב
