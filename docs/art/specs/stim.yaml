@@ -1,0 +1,11 @@
+# Placeholder spritesheet spec for the Stim archetype. Colour comes from docs/balance/classes.yaml.
+name: stim
+archetype: stim
+size: 32
+frames:
+  idle: 2
+  run: 4
+  jump: 1
+  attack: 3
+  hurt: 1
+  dead: 1

@@ -1,0 +1,16 @@
+# Items + loot tables. roll_loot() in shared-rules reads loot_tables.
+version: 1
+items:
+  expired_bandage:
+    name_key: item.expired_bandage.name
+    slot: consumable
+    rarity: common
+    value: 3
+loot_tables:
+  common_trash:
+    rolls: 1
+    entries:
+      - item: expired_bandage
+        weight: 70
+      - item: null           # nothing
+        weight: 30

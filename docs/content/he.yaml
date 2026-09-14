@@ -1,0 +1,12 @@
+# Hebrew game text. Keys only — never string literals in code. Keep in sync with en.yaml.
+class.stim.name: הממריץ
+class.numb.name: המאלחש
+class.illusion.name: ההוזה
+class.zen.name: המרגיע
+class.rage.name: הזועם
+skill.stim_jab.name: דקירת זירוז
+skill.stim_jab.desc: מכה מהירה. אושרה בוועדת האתיקה בסעיף 4(ב).
+monster.side_effect_slime.name: רירית תופעות לוואי
+item.expired_bandage.name: תחבושת שפג תוקפה
+error.invalid_message: הטופס שהוגש אינו תקין. נא להגיש מחדש בשלושה עותקים.
+error.rate_limited: חרגת ממכסת הפניות היומית. המרפאה סגורה לצהריים.

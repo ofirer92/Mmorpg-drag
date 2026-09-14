@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.env
+server/.env
+.DS_Store
+# Godot
+client/.godot/
+client/*.tmp
+client/android/
+# scratch
+/tmp/

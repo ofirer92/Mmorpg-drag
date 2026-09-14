@@ -1,0 +1,32 @@
+{
+  "name": "@hamirpaa/server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "migrate": "drizzle-kit migrate",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@hamirpaa/shared-rules": "workspace:*",
+    "drizzle-orm": "0.44.5",
+    "ioredis": "5.7.0",
+    "pino": "9.9.5",
+    "postgres": "3.4.7",
+    "ws": "8.18.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.6",
+    "@types/ws": "8.18.1",
+    "drizzle-kit": "0.31.4",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

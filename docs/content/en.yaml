@@ -1,0 +1,12 @@
+# English game text. Keys only — never string literals in code. Keep in sync with he.yaml.
+class.stim.name: The Stim
+class.numb.name: The Numb
+class.illusion.name: The Illusion
+class.zen.name: The Zen
+class.rage.name: The Rage
+skill.stim_jab.name: Expedited Jab
+skill.stim_jab.desc: A quick hit. Approved by the ethics committee under clause 4(b).
+monster.side_effect_slime.name: Side-Effect Slime
+item.expired_bandage.name: Expired Bandage
+error.invalid_message: The submitted form is invalid. Please resubmit in triplicate.
+error.rate_limited: Daily inquiry quota exceeded. The clinic is closed for lunch.

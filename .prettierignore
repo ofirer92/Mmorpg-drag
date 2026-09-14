@@ -1,0 +1,6 @@
+node_modules
+dist
+client
+docs/WORKPLAN.md
+packages/shared-rules/src/_balance_data.ts
+pnpm-lock.yaml

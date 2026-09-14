@@ -1,0 +1,13 @@
+# Monsters. TTK target for normal monsters: 3–8 s (balance-methodology skill).
+version: 1
+monsters:
+  side_effect_slime:
+    name_key: monster.side_effect_slime.name
+    level: 1
+    hp: 60
+    attack: 5
+    defense: 1
+    attack_speed: 0.8
+    xp: 12
+    loot_table: common_trash
+    ai: patrol

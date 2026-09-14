@@ -1,0 +1,40 @@
+# CI = scripts/check.sh. Nothing else defines green. Changing this file requires an ADR (ADR-006).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      STRICT_CLIENT: "1"
+      GODOT_VERSION: "4.3.0"
+      GUT_VERSION: "v9.3.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pyyaml pillow ruff
+      - run: pnpm install --frozen-lockfile
+      - name: Install Godot (headless)
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          use-dotnet: false
+          include-templates: false
+      - name: Install GUT
+        run: |
+          if [ ! -f client/addons/gut/gut_cmdln.gd ]; then
+            git clone --depth 1 --branch "$GUT_VERSION" https://github.com/bitwes/Gut.git /tmp/gut
+            mkdir -p client/addons && cp -r /tmp/gut/addons/gut client/addons/gut
+          fi
+      - run: ruff check scripts && ruff format --check scripts
+      - run: pnpm lint
+      - run: scripts/hooks/test_hooks.sh
+      - run: scripts/check.sh

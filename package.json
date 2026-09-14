@@ -1,0 +1,28 @@
+{
+  "name": "hamirpaa",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "scripts/check.sh",
+    "test": "scripts/test_server.sh",
+    "gen": "python3 scripts/gen_rules.py",
+    "sim": "tsx scripts/sim_clients.ts",
+    "lint": "eslint server/src packages/shared-rules/src scripts/sim_clients.ts",
+    "format": "prettier --write \"**/*.{ts,json,md}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "9.36.0",
+    "@types/node": "22.18.6",
+    "eslint": "9.36.0",
+    "prettier": "3.8.1",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.44.1",
+    "vitest": "3.2.4"
+  }
+}
