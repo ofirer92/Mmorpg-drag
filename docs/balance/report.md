@@ -24,4 +24,14 @@ fights per pair: 1000, seed 42
 
 Thresholds: spread ≤ 15 pts on the majority of monsters; normal TTK 3–8 s.
 
+## Time to level 10 (grinding the lowest-level monster, T-0.10 target ≈ 15 min)
+
+| archetype | time |
+|---|---|
+| stim | 10.2 min |
+| numb | 23.8 min ⚠️target 15±5 |
+| illusion | 14.8 min |
+| zen | 18.0 min |
+| rage | 12.1 min |
+
 **Verdict: APPROVED**

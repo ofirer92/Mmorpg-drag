@@ -1,8 +1,10 @@
 # XP curve. Read by packages/shared-rules (xp.ts) and validate_balance.py.
 # Formula: xp_for_level(L) = base * (L-1)^exp + linear*(L-1), rounded down; level 1 = 0.
 # Targets (WORKPLAN §10): level 10 in ~15 min play, level 30 ≈ 12 hours.
+# Placeholder numbers tuned against the placeholder monsters with scripts/balance_sim.py (time-to-level table).
+# Level-30 pacing is T-1.8 (game-designer).
 version: 1
 max_level: 30
-base: 50
+base: 4
 exponent: 2.2
-linear: 40
+linear: 12

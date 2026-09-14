@@ -11,6 +11,11 @@ export const CLASSES = {
       "base_defense": 4,
       "attack_speed": 1.4,
       "move_speed": 220,
+      "growth": {
+        "hp": 7,
+        "attack": 1.2,
+        "defense": 0.4
+      },
       "skills": [
         {
           "id": "stim_jab",
@@ -38,6 +43,11 @@ export const CLASSES = {
       "base_defense": 9,
       "attack_speed": 0.9,
       "move_speed": 180,
+      "growth": {
+        "hp": 12,
+        "attack": 0.8,
+        "defense": 0.9
+      },
       "skills": []
     },
     "illusion": {
@@ -48,6 +58,11 @@ export const CLASSES = {
       "base_defense": 5,
       "attack_speed": 1.1,
       "move_speed": 200,
+      "growth": {
+        "hp": 8,
+        "attack": 1.1,
+        "defense": 0.5
+      },
       "skills": []
     },
     "zen": {
@@ -58,6 +73,11 @@ export const CLASSES = {
       "base_defense": 6,
       "attack_speed": 1.0,
       "move_speed": 190,
+      "growth": {
+        "hp": 9,
+        "attack": 0.9,
+        "defense": 0.6
+      },
       "skills": []
     },
     "rage": {
@@ -68,6 +88,11 @@ export const CLASSES = {
       "base_defense": 3,
       "attack_speed": 1.0,
       "move_speed": 200,
+      "growth": {
+        "hp": 10,
+        "attack": 1.3,
+        "defense": 0.3
+      },
       "skills": []
     }
   }
@@ -189,7 +214,7 @@ export const MONSTERS = {
 export const XP_CURVE = {
   "version": 1,
   "max_level": 30,
-  "base": 50,
+  "base": 4,
   "exponent": 2.2,
-  "linear": 40
+  "linear": 12
 } as const;

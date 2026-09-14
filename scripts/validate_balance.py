@@ -67,6 +67,11 @@ def main() -> int:
             f"classes.{aid}",
         )
         keys_used.add(a.get("name_key", ""))
+        growth = a.get("growth")
+        if not isinstance(growth, dict):
+            err(f"classes.{aid}: missing growth")
+        else:
+            require(growth, ["hp", "attack", "defense"], f"classes.{aid}.growth")
         for s in a.get("skills", []) or []:
             require(
                 s, ["id", "name_key", "desc_key", "level", "power", "cooldown", "animation"], f"skill {s.get('id')}"
