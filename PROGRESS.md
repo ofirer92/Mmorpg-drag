@@ -1,5 +1,21 @@
 # PROGRESS
 
+## Session 3 — 2026-09-14 — Phase 0: map, mobile controls, monsters, crash
+**Done**
+- T-0.3 clinic_lobby map (TileMapLayer 60×20, generated tileset, 8 jumpable platforms) + T-0.5 touch controls (joystick, 3 buttons, auto-attack toggle; Hebrew labels via I18nBoot autoload). Screenshots in docs/screenshots/.
+- T-0.9 monsters (patrol/chase/attack/hurt/dead AI from monsters.yaml ai_params, HP bar, drop pickup) + T-0.8 Stim crash, both resolved inside the single LocalServer node (ADR-013). Arena test scene with 3 monster kinds.
+- shared-rules status.ts (crash), monster ai_params + 2 placeholder monsters (Q3), screenshot.sh under xvfb (ADR-014; CI installs xvfb and uploads screenshots).
+- Totals: vitest 68 + 7, GUT 69 (was 35). check.sh GREEN in strict mode.
+
+**Next**
+- T-0.10 XP/level-up/stats UI: place monsters in clinic_lobby, LocalServer grants xp on entity_died, RulesXp.level_for_xp, HUD. Then T-0.11 inventory (drops → inventory), T-0.13 local save.
+- Human: playtest docs/playtest_notes.md (crash feel), answer Q1–Q3, open the first PR (CI now includes a screenshot smoke step).
+
+**Broken / not verified**
+- Monsters exist only in scenes/test/arena.tscn, not yet on the real map (T-0.10 wires them).
+- Sub-agent reported client/tests/ was briefly wiped mid-session by a concurrent process and restored from git; final state verified (11 test files, tracked ones identical to HEAD). Run agents on disjoint directories only.
+- Balance: level-3 placeholder monster has TTK > 8 s vs level-1 stats (expected; game-designer tunes in T-0.7).
+
 ## Session 2 — 2026-09-14 — Phase 0 start: player + combat rules
 **Done**
 - T-0.1/T-0.2/T-0.4: `client/scenes/player/player.tscn` (CharacterBody2D + 6-state StateMachine + PlayerCamera), flat test map, main.tscn boots it. 33 GUT tests total (was 6).

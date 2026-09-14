@@ -1,16 +1,20 @@
-[gd_scene load_steps=3 format=3 uid="uid://b0hamirpaamain"]
+[gd_scene load_steps=4 format=3 uid="uid://b0hamirpaamain"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/test/flat_map.tscn" id="2_map"]
+[ext_resource type="PackedScene" path="res://scenes/maps/clinic_lobby.tscn" id="2_map"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="3_touch"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
-[node name="FlatMap" parent="." instance=ExtResource("2_map")]
+[node name="ClinicLobby" parent="." instance=ExtResource("2_map")]
 
 [node name="Label" type="Label" parent="."]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 374.0
 offset_bottom = 60.0
-text = "Hamirpaa — phase 0 prototype"
+text = "ui.title"
+
+[node name="TouchControls" parent="." instance=ExtResource("3_touch")]
+force_visible = true

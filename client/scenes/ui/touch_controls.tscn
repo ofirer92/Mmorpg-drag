@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="1_touch"]
+[ext_resource type="Script" path="res://scripts/ui/virtual_joystick.gd" id="2_joy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(1, 1, 1, 0.12)
+corner_radius_top_left = 70
+corner_radius_top_right = 70
+corner_radius_bottom_left = 70
+corner_radius_bottom_right = 70
+
+[node name="TouchControls" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_touch")
+
+[node name="Joystick" type="Control" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -136.0
+offset_right = 136.0
+offset_bottom = -16.0
+mouse_filter = 1
+script = ExtResource("2_joy")
+
+[node name="Background" type="Panel" parent="Joystick"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="Knob" type="ColorRect" parent="Joystick"]
+offset_right = 32.0
+offset_bottom = 32.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.45)
+
+[node name="ActionButtons" type="HBoxContainer" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -232.0
+offset_top = -84.0
+offset_right = -16.0
+offset_bottom = -16.0
+theme_override_constants/separation = 12
+
+[node name="SkillButton" type="Button" parent="ActionButtons"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 12
+text = "skill"
+
+[node name="AttackButton" type="Button" parent="ActionButtons"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 12
+text = "attack"
+
+[node name="JumpButton" type="Button" parent="ActionButtons"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+clip_text = true
+theme_override_font_sizes/font_size = 12
+text = "jump"
+
+[node name="AutoAttackToggle" type="CheckButton" parent="."]
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -206.0
+offset_top = 68.0
+offset_right = -16.0
+offset_bottom = 108.0
+clip_text = true
+theme_override_font_sizes/font_size = 12
+text = "auto"

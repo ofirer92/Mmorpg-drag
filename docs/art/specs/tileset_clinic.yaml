@@ -1,0 +1,21 @@
+# Placeholder tileset spec for the clinic lobby map (T-0.3). Grey-green
+# "waiting room" palette — see docs/GDD.md for tone. Tile order is the atlas
+# column order (left→right); ground/ground_top/platform/wall are solid
+# (collision), background/accent are decorative only. Keep this list and
+# client/scripts/maps/clinic_lobby.gd's ATLAS_COORDS / SOLID_TILES in sync.
+name: tileset_clinic
+size: 32
+tiles:
+  - ground
+  - ground_top
+  - platform
+  - wall
+  - background
+  - accent
+colours:
+  ground: "#7E8F86"
+  ground_top: "#A9B8AE"
+  platform: "#8FA79C"
+  wall: "#5B6B63"
+  background: "#D7DED9"
+  accent: "#4F7A6E"

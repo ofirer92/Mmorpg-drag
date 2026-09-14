@@ -22,13 +22,13 @@
 ## Phase 0 — פרוטוטייפ Single-player
 - [x] T-0.1 | godot-dev | Player: movement, jump, coyote-time, jump buffer (constants from RulesMovement) | test: client/tests/test_player_movement.gd (10 tests)
 - [x] T-0.2 | godot-dev | Player state machine (Idle/Run/Jump/Attack/Hurt/Dead) | test: client/tests/test_state_machine.gd (7 tests)
-- [ ] in-progress T-0.3 | godot-dev + art-pipeline | One map (TileMapLayer) 60×20 tiles with platforms | test: screenshot in docs/screenshots/
+- [x] T-0.3 | godot-dev + art-pipeline | One map (TileMapLayer) 60×20 tiles with platforms | test: docs/screenshots/clinic_lobby_1920x1080.png + client/tests/test_map_clinic_lobby.gd (7)
 - [x] T-0.4 | godot-dev | Camera with deadzone + map limits | test: client/tests/test_camera.gd (4 tests)
-- [ ] in-progress T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: screenshot at 390×844
+- [x] T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: docs/screenshots/main_390x844.png + client/tests/test_touch_controls.gd (12)
 - [x] T-0.6 | server-dev | shared-rules: damage(), xp_for_level(), roll_loot() (+movement) | test: 64 vitest tests + client/tests/test_rules_combat.gd parity fixture
 - [ ] blocked T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items | test: validate_balance + balance_sim green | reason: waiting Q1 (real GDD) — skill names/mechanics are product decisions
-- [ ] in-progress T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: GUT test + feel documented in PROGRESS
-- [ ] in-progress T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: 3 kinds on the map
+- [x] T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: client/tests/test_local_server.gd + docs/playtest_notes.md
+- [x] T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: client/tests/test_monster_ai.gd (5) + docs/screenshots/arena_1920x1080.png (3 kinds; placeholders per Q3)
 - [ ] ready T-0.10 | godot-dev | XP, level-up, stats UI | test: level 10 in 15 min (simulation)
 - [ ] ready T-0.11 | godot-dev | Basic inventory + gear comparison | test: screenshot
 - [ ] blocked T-0.12 | game-designer + godot-dev | NPC "רוקח": 3 dialogue lines + shop | test: buy/sell tested | reason: waiting Q1
@@ -41,3 +41,5 @@
 - T-I.6: PASS — guard_bash.sh blocked a real recursive delete during the bootstrap session.
 - T-0.1/T-0.2/T-0.4: PASS — 21 new GUT tests (movement incl. coyote/buffer/jump-cut boundaries, all 6 state transitions, camera deadzone + limits); player.gd has no movement literals (9 RulesMovement calls). No screenshot: sandbox has no display server — T-0.3's screenshot DoD needs a human or a CI job with xvfb.
 - T-0.6: PASS — 50 new vitest tests (combat 18+3 QA, loot 10, movement 22); TS ↔ GDScript parity on 10 damage + 10 loot cases via fixtures/combat.json; QA added: power ≤ 0 / absurd defense / roll == 1 never go below MIN_DAMAGE. Translator gained `for…of` and `X[k] == null → X.get(k)` (ADR-012).
+- T-0.3/T-0.5: PASS — 19 new GUT tests; screenshots reviewed at 390×844 and 1920×1080. QA fixes after review: joystick overlapped the left button at 390 px (resized), title was a hardcoded string (now `ui.title` key), button labels clipped (shortened to one word each).
+- T-0.8/T-0.9: PASS — 15 new GUT tests; `RulesCombat.damage(` occurs in exactly one client file (local_server.gd, ADR-013). QA added: self-attack and unknown-id intents are ignored. Note: monsters are not yet placed in clinic_lobby.tscn (arena.tscn only) — wire-up is part of T-0.10 (XP flow needs kills on the real map).

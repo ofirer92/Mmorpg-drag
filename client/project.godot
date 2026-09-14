@@ -16,6 +16,10 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
+[autoload]
+
+I18nBoot="*res://scripts/i18n_boot.gd"
+
 [display]
 
 window/size/viewport_width=390

@@ -12,7 +12,8 @@ error.invalid_message: הטופס שהוגש אינו תקין. נא להגיש 
 error.rate_limited: חרגת ממכסת הפניות היומית. המרפאה סגורה לצהריים.
 monster.lost_referral.name: הפניה אבודה
 monster.form_27b.name: טופס 27-ב
-ui.touch.jump: קפיצה מאושרת
-ui.touch.attack: טיפול מיידי
-ui.touch.skill: נוהל חירום
+ui.touch.jump: קפיצה
+ui.touch.attack: טיפול
+ui.touch.skill: נוהל
 ui.touch.auto_attack: טיפול אוטומטי
+ui.title: המרפאה — אב-טיפוס, שלב 0 (לא לשימוש רפואי)

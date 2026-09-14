@@ -10,6 +10,12 @@ func _init() -> void:
 		push_error("cannot load %s" % scene_path)
 		quit(1)
 		return
+	# Custom -s main-loop scripts (this one) get their _init() called before
+	# project.godot's [autoload] singletons are added to `root` — unlike a
+	# normal run/main_scene boot, where autoloads are guaranteed ready first.
+	# Wait a frame so autoloads (e.g. I18nBoot) are up before the screenshot
+	# scene's own _ready() runs and reads them.
+	await process_frame
 	root.add_child(packed.instantiate())
 	await process_frame
 	await process_frame
