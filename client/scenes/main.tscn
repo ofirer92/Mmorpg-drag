@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://b0hamirpaamain"]
+[gd_scene load_steps=6 format=3 uid="uid://b0hamirpaamain"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/maps/clinic_lobby.tscn" id="2_map"]
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="3_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/inventory_panel.tscn" id="5_inv"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -21,3 +22,7 @@ text = "ui.title"
 
 [node name="TouchControls" parent="." instance=ExtResource("3_touch")]
 force_visible = true
+
+[node name="InventoryPanel" parent="." instance=ExtResource("5_inv")]
+
+[node name="AutosaveTimer" type="Timer" parent="."]

@@ -54,6 +54,7 @@ func bind(server: LocalServer, entity_id: String) -> void:
 	server.entity_died.connect(_on_entity_died)
 	server.xp_gained.connect(_on_xp_gained)
 	server.level_up.connect(_on_level_up)
+	server.healed.connect(_on_healed)
 	_refresh_from_stats(server.get_stats(entity_id))
 
 
@@ -123,3 +124,15 @@ func _on_level_up_timer_timeout() -> void:
 
 func _on_stats_toggled(pressed: bool) -> void:
 	stats_panel.visible = pressed
+
+
+## Re-read the server's stats (after a save is loaded, gear changes, ...).
+func refresh() -> void:
+	if _server == null:
+		return
+	_refresh_from_stats(_server.get_stats(_entity_id))
+
+
+func _on_healed(id: String, _amount: float, _new_hp: float) -> void:
+	if id == _entity_id:
+		refresh()

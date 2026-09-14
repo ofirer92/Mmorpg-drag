@@ -1,4 +1,4 @@
-# GENERATED from packages/shared-rules/src/combat.ts sha256:e8ce9c010729ee9d — DO NOT EDIT (run scripts/gen_rules.py)
+# GENERATED from packages/shared-rules/src/combat.ts sha256:c1fc67f6d9d272ff — DO NOT EDIT (run scripts/gen_rules.py)
 class_name RulesCombat
 
 # Combat math. RulesScript subset (see .claude/skills/shared-rules-authoring).
@@ -38,3 +38,8 @@ static func apply_damage(hp: float, dmg: float) -> float:
 
 static func is_dead(hp: float) -> bool:
 	return hp <= 0.0
+
+# Healing: hp after adding `amount`, floored, clamped to [0, max_hp]. Negative amounts never heal.
+
+static func heal(hp: float, max_hp: float, amount: float) -> float:
+	return max(0.0, min(max_hp, floor(hp + max(0.0, amount))))

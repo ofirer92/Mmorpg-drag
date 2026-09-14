@@ -6,7 +6,7 @@ items:
     slot: consumable
     rarity: common
     value: 3
-    stats: {attack: 0, defense: 0, hp: 0}
+    stats: {attack: 0, defense: 0, hp: 15}   # consumable: hp = heal amount (RulesCombat.heal)
   # --- placeholder, game-designer replaces in T-0.7 ---
   rubber_stamp_sword:
     name_key: item.rubber_stamp_sword.name
@@ -37,7 +37,7 @@ items:
     slot: consumable
     rarity: common
     value: 5
-    stats: {attack: 0, defense: 0, hp: 0}
+    stats: {attack: 0, defense: 0, hp: 25}   # it's a placebo. it works anyway.
   # --- end placeholder ---
 loot_tables:
   common_trash:

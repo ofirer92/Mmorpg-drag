@@ -24,6 +24,8 @@ signal crash_ended(id: String)
 ## to react only to the level boundary (HUD flash, etc.).
 signal xp_gained(id: String, amount: float, total_xp: float, level: float)
 signal level_up(id: String, new_level: float, stats: Dictionary)
+## T-0.11/T-0.13 wiring: a consumable was used / hp restored by the server.
+signal healed(id: String, amount: float, new_hp: float)
 
 ## Seeded so tests can predict rolls: create a second RandomNumberGenerator
 ## with the same seed and call randf() the same number of times.
@@ -92,7 +94,65 @@ func register(id: String, stats: Dictionary, progression_archetype: String = "")
 		"total_xp": 0.0,
 		"base_stats": base,
 		"growth_stats": growth,
+		"gear": {"attack": 0.0, "defense": 0.0, "hp": 0.0},
 	}
+
+
+## Recompute attack/defense/max_hp for a progression entity from its level plus
+## equipped-gear bonuses (Inventory.equipped_stats()). hp is clamped to the new max.
+func _recompute_progression_stats(e: Dictionary) -> void:
+	if not e.has_progression:
+		return
+	var base: Dictionary = e.base_stats
+	var growth: Dictionary = e.growth_stats
+	var gear: Dictionary = e.gear
+	e.attack = RulesProgression.attack_at_level(base, growth, e.level) + float(gear.attack)
+	e.defense = RulesProgression.defense_at_level(base, growth, e.level) + float(gear.defense)
+	e.max_hp = RulesProgression.hp_at_level(base, growth, e.level) + float(gear.hp)
+	e.hp = min(e.hp, e.max_hp)
+
+
+## T-0.11: equipped gear adds flat attack/defense/hp (the sum comes from
+## Inventory.equipped_stats(); items.yaml holds the numbers). Only progression
+## entities (the player) carry gear. No-op for unknown ids.
+func set_gear_bonus(id: String, bonus: Dictionary) -> void:
+	if not _entities.has(id):
+		return
+	var e: Dictionary = _entities[id]
+	if not e.has_progression:
+		return
+	var old_max: float = e.max_hp
+	e.gear = {
+		"attack": float(bonus.get("attack", 0)),
+		"defense": float(bonus.get("defense", 0)),
+		"hp": float(bonus.get("hp", 0)),
+	}
+	_recompute_progression_stats(e)
+	# Gaining max hp from gear raises current hp by the same amount (no free heal beyond that).
+	if e.max_hp > old_max:
+		e.hp = min(e.max_hp, e.hp + (e.max_hp - old_max))
+
+
+## T-0.11: a consumable's `stats.hp` heals via RulesCombat.heal. Ignored for
+## dead/unknown entities. Emits healed(id, actual_amount, new_hp).
+func heal(id: String, amount: float) -> void:
+	if not _entities.has(id):
+		return
+	var e: Dictionary = _entities[id]
+	if not e.alive:
+		return
+	var new_hp: float = RulesCombat.heal(e.hp, e.max_hp, amount)
+	var actual: float = new_hp - e.hp
+	e.hp = new_hp
+	healed.emit(id, actual, new_hp)
+
+
+## T-0.13: restore hp from a save (clamped to max, ≥ 1 so a loaded player is never dead).
+func set_hp(id: String, hp: float) -> void:
+	if not _entities.has(id):
+		return
+	var e: Dictionary = _entities[id]
+	e.hp = clamp(hp, 1.0, e.max_hp)
 
 
 ## T-0.10: used later by the save system to restore a player's progression
@@ -111,11 +171,7 @@ func set_progress(id: String, total_xp: float) -> void:
 		return
 	e.total_xp = total_xp
 	e.level = RulesXp.level_for_xp(total_xp)
-	var base: Dictionary = e.base_stats
-	var growth: Dictionary = e.growth_stats
-	e.attack = RulesProgression.attack_at_level(base, growth, e.level)
-	e.defense = RulesProgression.defense_at_level(base, growth, e.level)
-	e.max_hp = RulesProgression.hp_at_level(base, growth, e.level)
+	_recompute_progression_stats(e)
 	e.hp = e.max_hp
 
 
@@ -247,11 +303,7 @@ func _grant_xp_to_killer(victim: Dictionary) -> void:
 
 	if new_level > killer.level:
 		killer.level = new_level
-		var base: Dictionary = killer.base_stats
-		var growth: Dictionary = killer.growth_stats
-		killer.attack = RulesProgression.attack_at_level(base, growth, new_level)
-		killer.defense = RulesProgression.defense_at_level(base, growth, new_level)
-		killer.max_hp = RulesProgression.hp_at_level(base, growth, new_level)
+		_recompute_progression_stats(killer)
 		killer.hp = killer.max_hp
 		level_up.emit(killer_id, new_level, get_stats(killer_id))
 

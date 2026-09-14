@@ -43,3 +43,8 @@ export function apply_damage(hp: number, dmg: number): number {
 export function is_dead(hp: number): boolean {
   return hp <= 0;
 }
+
+// Healing: hp after adding `amount`, floored, clamped to [0, max_hp]. Negative amounts never heal.
+export function heal(hp: number, max_hp: number, amount: number): number {
+  return Math.max(0, Math.min(max_hp, Math.floor(hp + Math.max(0, amount))));
+}

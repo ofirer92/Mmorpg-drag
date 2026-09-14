@@ -1,5 +1,22 @@
 # PROGRESS
 
+## Session 4 — 2026-09-14 — Phase 0: progression, HUD, inventory, save
+**Done**
+- T-0.10 XP/level-up/HUD: LocalServer grants xp to the killer, levels via RulesXp, stats via RulesProgression (new shared-rules module + classes.yaml growth, Q4); 6 monsters live on clinic_lobby; HUD with HP/XP bars, stats panel, level-up flash.
+- T-0.11 inventory + gear comparison and T-0.13 JSON save, wired end to end: drops → bag, equip → LocalServer.set_gear_bonus, consumable → LocalServer.heal (new RulesCombat.heal), autosave (30 s / level-up / window close), load on boot. 5 placeholder items (Q5).
+- XP curve retuned (was ~100 min to level 10, now 10–24 min by archetype); balance_sim prints a time-to-level table.
+- Totals: vitest 76 + 7, GUT 147 (was 71). check.sh GREEN in strict mode. Screenshots refreshed.
+
+**Next**
+- T-0.14 export (Android APK + Windows): needs export templates + export_presets.cfg + moving docs/content YAML into the .pck (I18nBoot reads res://../docs today).
+- T-0.7 / T-0.12 remain blocked on Q1 (real GDD). Then Phase 0 Human Checkpoint: 20-minute mobile playtest ("is it fun?").
+- Human: answer Q1–Q5, playtest docs/playtest_notes.md, open the first PR.
+
+**Broken / not verified**
+- Duplicate agents were accidentally launched in this session (the first pair survived a container reset I assumed had killed them); one duplicate briefly overwrote inventory.gd before being stopped. Final files were re-verified by the owning agent and by the full check. Lesson: check `git status` for agent output before relaunching.
+- Balance: numb takes ~24 min to level 10 (placeholder numbers).
+- Consumables heal via their `stats.hp`; no cooldown or use animation yet.
+
 ## Session 3 — 2026-09-14 — Phase 0: map, mobile controls, monsters, crash
 **Done**
 - T-0.3 clinic_lobby map (TileMapLayer 60×20, generated tileset, 8 jumpable platforms) + T-0.5 touch controls (joystick, 3 buttons, auto-attack toggle; Hebrew labels via I18nBoot autoload). Screenshots in docs/screenshots/.

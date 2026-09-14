@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CRIT_CHANCE, CRIT_MULT, DEF_SCALE, MIN_DAMAGE } from "../src/_constants.js";
-import { apply_damage, damage, effective_hp, is_dead } from "../src/combat.js";
+import { apply_damage, damage, effective_hp, heal, is_dead } from "../src/combat.js";
 import type { Combatant } from "../src/combat.js";
 import fixture from "./fixtures/combat.json" with { type: "json" };
 
@@ -135,5 +135,18 @@ describe("damage — QA edge cases", () => {
   });
   it("a roll of exactly 1 (out of range) is treated as a non-crit, not an error", () => {
     expect(damage(a, d, 1, 1)).toBe(damage(a, d, 1, 0.5));
+  });
+});
+
+describe("heal", () => {
+  it("adds and clamps to max_hp", () => {
+    expect(heal(10, 50, 15)).toBe(25);
+    expect(heal(45, 50, 15)).toBe(50);
+    expect(heal(50, 50, 1)).toBe(50);
+  });
+  it("floors fractional results and ignores negative amounts", () => {
+    expect(heal(10.4, 50, 0.5)).toBe(10);
+    expect(heal(10, 50, -20)).toBe(10);
+    expect(heal(0, 50, 0)).toBe(0);
   });
 });

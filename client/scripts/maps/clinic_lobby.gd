@@ -88,8 +88,15 @@ const MonsterScene: PackedScene = preload("res://scenes/monsters/monster.tscn")
 @onready var player: Player = $Player
 @onready var local_server: LocalServer = $LocalServer
 
+## T-0.11: the player's bag. Set by main.gd (or a test) before drops appear; drops
+## spawned into this scene by dying monsters are routed here on pickup.
+var inventory: Inventory = null
+## Emitted after a drop was picked up and added (or rejected when the bag is full).
+signal item_picked_up(item_id: String, added: bool)
+
 
 func _ready() -> void:
+	child_entered_tree.connect(_on_child_entered_tree)
 	_build_tiles()
 	player.global_position = spawn.global_position
 	var cam: PlayerCamera = player.get_node("PlayerCamera")
@@ -140,3 +147,24 @@ func _build_tiles() -> void:
 ## The playable rectangle in pixels, used by PlayerCamera.set_map_bounds().
 func get_bounds() -> Rect2:
 	return Rect2(Vector2.ZERO, Vector2(GRID_COLS * TILE_SIZE, GRID_ROWS * TILE_SIZE))
+
+
+func _on_child_entered_tree(node: Node) -> void:
+	if node is Drop:
+		var drop: Drop = node
+		drop.picked_up.connect(_on_drop_picked_up)
+
+
+func _on_drop_picked_up(item_id: String) -> void:
+	var added: bool = inventory != null and inventory.add(item_id)
+	item_picked_up.emit(item_id, added)
+
+
+## T-0.13: where the player currently stands (saved) / put them back (loaded).
+func get_player_position() -> Vector2:
+	return player.global_position
+
+
+func set_player_position(pos: Vector2) -> void:
+	player.global_position = pos
+	player.velocity = Vector2.ZERO

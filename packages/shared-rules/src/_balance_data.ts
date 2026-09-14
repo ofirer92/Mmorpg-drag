@@ -139,7 +139,7 @@ export const ITEMS: ItemsData = {
       "stats": {
         "attack": 0,
         "defense": 0,
-        "hp": 0
+        "hp": 15
       }
     },
     "rubber_stamp_sword": {
@@ -194,7 +194,7 @@ export const ITEMS: ItemsData = {
       "stats": {
         "attack": 0,
         "defense": 0,
-        "hp": 0
+        "hp": 25
       }
     }
   },
