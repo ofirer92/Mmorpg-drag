@@ -71,3 +71,17 @@ ui.dialogue.next: הבא
 ui.dialogue.talk: דבר
 ui.skills.title: נהלים
 ui.skills.locked: נעול עד דרגה %d
+item.affix.stamped.name: מוחתם
+item.affix.in_triplicate.name: בשלושה עותקים
+item.affix.off_label.name: שימוש חורג
+item.affix.generic_brand.name: מותג גנרי
+item.affix.insured.name: מבוטח
+item.affix.expired_but_fine.name: כמעט פג תוקף
+item.affix.committee_approved.name: אושר בוועדה
+item.affix.side_effects_may_include.name: תופעות לוואי אפשריות
+item.affix.dosage_adjusted.name: מינון מותאם
+item.affix.manager_signed.name: בחתימת מנהל
+error.protocol_mismatch: הגרסה שברשותך היא מהדורה ישנה של הטופס. נא להוריד את המהדורה העדכנית ולהיכנס שוב לתור.
+error.invalid_token: מספר התור אינו מזוהה. נא לקחת מספר חדש בכניסה.
+error.zone_full: חדר ההמתנה מלא. בהוראת ועדת בטיחות האש, נא להמתין בחוץ.
+error.not_alive: נפטרים אינם רשאים להגיש בקשות. נא להמתין להחייאה מנהלית.

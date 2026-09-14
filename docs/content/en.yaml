@@ -71,3 +71,17 @@ ui.dialogue.next: Next
 ui.dialogue.talk: Talk
 ui.skills.title: Protocols
 ui.skills.locked: Locked until grade %d
+item.affix.stamped.name: Stamped
+item.affix.in_triplicate.name: In Triplicate
+item.affix.off_label.name: Off-Label Use
+item.affix.generic_brand.name: Generic Brand
+item.affix.insured.name: Insured
+item.affix.expired_but_fine.name: Expired But Fine
+item.affix.committee_approved.name: Committee Approved
+item.affix.side_effects_may_include.name: Side Effects Possible
+item.affix.dosage_adjusted.name: Dosage Adjusted
+item.affix.manager_signed.name: Manager-Signed
+error.protocol_mismatch: Your client is an outdated edition of the form. Download the current edition and rejoin the queue.
+error.invalid_token: Queue number not recognised. Please take a new one at the entrance.
+error.zone_full: The waiting room is at capacity. By order of the fire safety committee, please wait outside.
+error.not_alive: The deceased may not file requests. Please wait for administrative resuscitation.

@@ -34,4 +34,6 @@ Thresholds: spread ≤ 15 pts on the majority of monsters; normal TTK 3–8 s.
 | zen | 18.1 min |
 | rage | 12.1 min |
 
+Max attack % an epic item's affixes can reach (T-1.7, 3 slots, best rolls): +18%
+
 **Verdict: APPROVED**

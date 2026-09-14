@@ -127,6 +127,41 @@ def main() -> int:
             if e.get("weight", 0) <= 0:
                 err(f"loot_tables.{tid}: weight must be > 0")
 
+    affixes = items_doc.get("affixes", {})
+    for xid, ax in affixes.items():
+        require(ax, ["name_key", "rarities", "stats", "mult", "weight"], f"affixes.{xid}")
+        keys_used.add(ax.get("name_key", ""))
+        rarities = ax.get("rarities")
+        if not isinstance(rarities, list) or not rarities or not set(rarities) <= ITEM_RARITIES:
+            err(f"affixes.{xid}: rarities must be a non-empty list drawn from {sorted(ITEM_RARITIES)}")
+        stats = ax.get("stats")
+        if not isinstance(stats, dict) or set(stats) != ITEM_STAT_KEYS:
+            err(f"affixes.{xid}: stats must have exactly keys {sorted(ITEM_STAT_KEYS)}")
+        mult = ax.get("mult")
+        if not isinstance(mult, dict) or set(mult) != ITEM_STAT_KEYS:
+            err(f"affixes.{xid}: mult must have exactly keys {sorted(ITEM_STAT_KEYS)}")
+        else:
+            for mk, mv in mult.items():
+                if not isinstance(mv, (int, float)) or isinstance(mv, bool) or not 0 <= mv <= 1:
+                    err(f"affixes.{xid}: mult.{mk} must be within 0..1")
+        weight = ax.get("weight", 0)
+        if not isinstance(weight, (int, float)) or isinstance(weight, bool) or weight <= 0:
+            err(f"affixes.{xid}: weight must be > 0")
+
+    affix_order = items_doc.get("affix_order", [])
+    if set(affix_order) != set(affixes):
+        err("affix_order must list every key in affixes exactly once")
+    elif len(affix_order) != len(affixes):
+        err("affix_order has duplicate entries")
+
+    affix_slots = items_doc.get("affix_slots", {})
+    if affixes and set(affix_slots) != ITEM_RARITIES:
+        err(f"affix_slots must have exactly keys {sorted(ITEM_RARITIES)}")
+    for rid, r in affix_slots.items():
+        require(r, ["min", "max"], f"affix_slots.{rid}")
+        if "min" in r and "max" in r and r["min"] > r["max"]:
+            err(f"affix_slots.{rid}: min must be ≤ max")
+
     monsters = load("monsters.yaml").get("monsters", {})
     for mid, m in monsters.items():
         require(

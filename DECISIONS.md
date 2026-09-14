@@ -96,8 +96,15 @@ objects can use this pattern. Addendum (same day): the translator also rewrites 
 `X.get(key) == null` / `!= null`, because GDScript's `dict[missing_key]` bracket access prints a
 non-fatal `SCRIPT ERROR` while `Dictionary.get()` returns null silently. Guard a dynamic lookup with
 `if (X[key] == null) { return ...; }` in TS and both sides stay quiet.
+Addendum (2026-09-14, T-1.7): `gen_items_ts()` extended the same way for item affixes — `ITEMS.affixes`
+is now `Record<string, AffixDef>` (with `AffixStatBlock` for `stats`/`mult`), plus `affix_order: string[]`
+(explicit roll order, since RulesScript still can't iterate a Dictionary's keys — only `for (const x of ARR)`
+over an array) and `affix_slots: Record<string, AffixSlotRange>`. No translator changes were needed; this
+reuses the exact `Record<string, X>` + guard-then-reaccess pattern documented above (see
+`packages/shared-rules/src/affixes.ts`).
 
 ## ADR-013 — Phase 0 single-player combat runs in one "LocalServer" node
+
 Date: 2026-09-14 · Status: accepted (until T-2.9)
 Context: CLAUDE.md says the client never computes damage; WORKPLAN Phase 0 is a single-player prototype
 and T-2.9 later removes single-player logic ("local server mode").
@@ -109,6 +116,7 @@ by T-2.9's DoD later).
 Consequences: Phase 2 replaces LocalServer with the network layer without touching player/monster scenes.
 
 ## ADR-014 — Screenshots via xvfb; CI installs it
+
 Date: 2026-09-14 · Status: accepted
 Context: `scripts/screenshot.sh` needs a display; the AI sandbox and CI runners have none.
 Decision: `screenshot.sh` wraps Godot in `xvfb-run` when no DISPLAY is set and forces the Dummy audio
@@ -117,10 +125,12 @@ uploaded). Screenshots committed under docs/screenshots/ are the DoD evidence fo
 Consequences: xvfb is a system package (apt), not a project library; `setup.sh` mentions it for Linux.
 
 ## ADR-015 — Skills are server-gated; currency and prices are rule-derived
+
 Date: 2026-09-14 · Status: accepted
 Context: T-0.7 adds usable skills, T-0.12 adds a shop. Both need numbers and gates that the client must
 not own.
 Decision:
+
 - Skill definitions live in docs/balance/classes.yaml (level, power, hits, cooldown, crash_hits,
   range_px). Unlock and cooldown checks are pure rules (shared-rules skills.ts) evaluated by the
   authority (LocalServer now, the real server in phase 2) on the server clock; the client only asks
@@ -130,7 +140,7 @@ Decision:
   (`money_dropped`); the client bag stores it. Prices are value × BUY_PRICE_MULT / SELL_PRICE_MULT
   from shared-rules constants; never typed in UI code.
 - Placeholder content policy (Q3–Q6): when a task is blocked on the GDD but the human asks for features,
-  engineering placeholders are allowed if they (a) live only in docs/balance/*.yaml + docs/content, (b)
+  engineering placeholders are allowed if they (a) live only in docs/balance/\*.yaml + docs/content, (b)
   are marked ⚠️ PLACEHOLDER in the file, and (c) are logged as a Question for human in TASKS.md.
-Consequences: swapping content never touches code; phase 2 replaces LocalServer without changing the
-skill/shop UI.
+  Consequences: swapping content never touches code; phase 2 replaces LocalServer without changing the
+  skill/shop UI.

@@ -105,6 +105,13 @@ def main() -> int:
     for aid, a in classes.items():
         minutes = time_to_level(a, monsters, xp_curve, rng) / 60
         prog_rows.append(f"| {aid} | {minutes:.1f} min{'' if 10 <= minutes <= 20 else ' ⚠️target 15±5'} |")
+    items_doc = yaml.safe_load((BAL / "items.yaml").read_text())
+    epic_slots = items_doc.get("affix_slots", {}).get("epic", {"max": 0})
+    epic_attack_mults = sorted(
+        (ax["mult"]["attack"] for ax in items_doc.get("affixes", {}).values() if "epic" in ax["rarities"]),
+        reverse=True,
+    )
+    max_epic_attack_mult = sum(epic_attack_mults[: epic_slots["max"]])
     report = [
         "# Balance report",
         f"fights per pair: {args.fights}, seed {args.seed}",
@@ -120,6 +127,9 @@ def main() -> int:
         "| archetype | time |",
         "|---|---|",
         *prog_rows,
+        "",
+        f"Max attack % an epic item's affixes can reach (T-1.7, {epic_slots['max']} slots, best rolls): "
+        f"+{max_epic_attack_mult:.0%}",
     ]
     verdict = "APPROVED" if len(spread_fail) <= len(monsters) / 2 else "NOT APPROVED"
     report.append(

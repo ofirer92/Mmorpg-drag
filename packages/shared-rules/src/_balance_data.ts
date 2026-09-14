@@ -173,10 +173,32 @@ export interface LootTable {
   entries: LootEntry[];
 }
 
+export interface AffixStatBlock {
+  attack: number;
+  defense: number;
+  hp: number;
+}
+
+export interface AffixDef {
+  name_key: string;
+  rarities: string[];
+  stats: AffixStatBlock;
+  mult: AffixStatBlock;
+  weight: number;
+}
+
+export interface AffixSlotRange {
+  min: number;
+  max: number;
+}
+
 export interface ItemsData {
   version: number;
   items: Record<string, ItemDef>;
   loot_tables: Record<string, LootTable>;
+  affixes: Record<string, AffixDef>;
+  affix_order: string[];
+  affix_slots: Record<string, AffixSlotRange>;
 }
 
 export const ITEMS: ItemsData = {
@@ -326,6 +348,214 @@ export const ITEMS: ItemsData = {
           "weight": 30
         }
       ]
+    }
+  },
+  "affixes": {
+    "stamped": {
+      "name_key": "item.affix.stamped.name",
+      "rarities": [
+        "common",
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.03,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 20
+    },
+    "in_triplicate": {
+      "name_key": "item.affix.in_triplicate.name",
+      "rarities": [
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 0,
+        "defense": 1,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 12
+    },
+    "off_label": {
+      "name_key": "item.affix.off_label.name",
+      "rarities": [
+        "common",
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 2,
+        "defense": 0,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 18
+    },
+    "generic_brand": {
+      "name_key": "item.affix.generic_brand.name",
+      "rarities": [
+        "common"
+      ],
+      "stats": {
+        "attack": 1,
+        "defense": 1,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 25
+    },
+    "insured": {
+      "name_key": "item.affix.insured.name",
+      "rarities": [
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 10
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.05
+      },
+      "weight": 10
+    },
+    "expired_but_fine": {
+      "name_key": "item.affix.expired_but_fine.name",
+      "rarities": [
+        "common",
+        "rare"
+      ],
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 5
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 22
+    },
+    "committee_approved": {
+      "name_key": "item.affix.committee_approved.name",
+      "rarities": [
+        "epic"
+      ],
+      "stats": {
+        "attack": 3,
+        "defense": 3,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.05,
+        "defense": 0.05,
+        "hp": 0.0
+      },
+      "weight": 6
+    },
+    "side_effects_may_include": {
+      "name_key": "item.affix.side_effects_may_include.name",
+      "rarities": [
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 4,
+        "defense": 0,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.0,
+        "hp": 0.0
+      },
+      "weight": 9
+    },
+    "dosage_adjusted": {
+      "name_key": "item.affix.dosage_adjusted.name",
+      "rarities": [
+        "common",
+        "rare",
+        "epic"
+      ],
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 0
+      },
+      "mult": {
+        "attack": 0.0,
+        "defense": 0.08,
+        "hp": 0.0
+      },
+      "weight": 14
+    },
+    "manager_signed": {
+      "name_key": "item.affix.manager_signed.name",
+      "rarities": [
+        "epic"
+      ],
+      "stats": {
+        "attack": 5,
+        "defense": 5,
+        "hp": 5
+      },
+      "mult": {
+        "attack": 0.1,
+        "defense": 0.1,
+        "hp": 0.1
+      },
+      "weight": 4
+    }
+  },
+  "affix_order": [
+    "stamped",
+    "in_triplicate",
+    "off_label",
+    "generic_brand",
+    "insured",
+    "expired_but_fine",
+    "committee_approved",
+    "side_effects_may_include",
+    "dosage_adjusted",
+    "manager_signed"
+  ],
+  "affix_slots": {
+    "common": {
+      "min": 0,
+      "max": 1
+    },
+    "rare": {
+      "min": 1,
+      "max": 2
+    },
+    "epic": {
+      "min": 2,
+      "max": 3
     }
   }
 };

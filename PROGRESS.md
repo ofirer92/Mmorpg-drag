@@ -1,5 +1,21 @@
 # PROGRESS
 
+## Session 6 — 2026-09-14 — Phase 1/2 engineering: affix rules, protocol v1, UI blocking
+**Done**
+- T-1.7 (rules level): 10 placeholder affixes in items.yaml (Q7), shared-rules affixes.ts (count/pool/weighted roll/stat+mult/item_stat_with_affixes), parity fixture asserted by vitest and GUT.
+- T-2.1: docs/protocol.md v1 with 16 messages, sequences, bounds rationale and error codes; Zod schemas + parseServerMessage; protocol.gd regenerated; 65 protocol tests. check_protocol_sync regex fixed.
+- T-0.15: attacks/skills blocked while a panel is open. Backlog opened for Phase 1 (engineering rows) and Phase 2.
+- Totals: vitest 165 + 7, GUT 212. check.sh GREEN in strict mode.
+
+**Next**
+- T-2.2 server room (4 players, 20 Hz, authoritative movement, PICKUP_RADIUS_PX) → T-2.3 client net layer with prediction/reconciliation → T-2.4 combat through the server. These replace LocalServer (ADR-013) per T-2.9.
+- T-1.7b inventory item instances with affixes; T-1.5 form 27-ב UI shell.
+- Human: Q1–Q7, Phase 0 playtest, first PR.
+
+**Broken / not verified**
+- The PostToolUse prettier hook reformats markdown tables in docs/; scripts that parse docs must tolerate padded cells (check_protocol_sync now does).
+- Two agents running the full check concurrently can see a transient red while the other edits; only sequential final runs count.
+
 ## Session 5 — 2026-09-14 — Phase 0: skills, pharmacist, shop, currency
 **Done**
 - Skill system (T-0.7): 5 placeholder Stim skills in classes.yaml, shared-rules skills.ts; LocalServer.request_skill gates unlock + cooldown on the server clock; attack = basic skill, skill button = selected skill; SkillBar UI with cooldowns and locked levels.

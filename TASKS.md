@@ -10,6 +10,7 @@
 - [ ] Q4: classes.yaml `growth` per archetype and the retuned xp_curve.yaml are ENGINEERING PLACEHOLDERS (stim reaches level 10 in ~10 min, numb ~24). game-designer owns them in T-0.7/T-1.8. OK? (not blocking)
 - [ ] Q5: items.yaml has 5 placeholder items (2 weapons, head, body, consumable) with stats; consumables' `stats.hp` = heal amount. game-designer replaces in T-0.7. OK? (not blocking)
 - [ ] Q6: on the human's 'add features' instruction, T-0.7 and T-0.12 were built with PLACEHOLDER skills (5 Stim skills), NPC lines (pharmacist), shop stock and a currency ("אישורי החזר"). All live in docs/balance/*.yaml + docs/content — swap freely. OK? (not blocking)
+- [ ] Q7: items.yaml `affixes` (10 satire affixes, slot ranges per rarity) are ENGINEERING PLACEHOLDERS. game-designer owns them (T-1.7 content). OK? (not blocking)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -45,12 +46,12 @@
 - [ ] blocked T-1.4 | game-designer | Level-10 branch: 2 "dosages" per archetype | test: YAML + sim | reason: Q1
 - [ ] ready T-1.5 | godot-dev | "טופס עלייה במינון 27-ב" bureaucratic upgrade UI (shell, wired to level-up) | test: screenshot
 - [ ] blocked T-1.6 | art-pipeline + game-designer + godot-dev | 3 new zones (10 monsters, 1 boss) | test: sim + screenshot | reason: Q1
-- [ ] in-progress T-1.7 | server-dev | Item affixes (10) — rules level: affixes.ts + YAML + parity fixture; client item instances follow as T-1.7b | test: vitest + GUT roll tests
+- [x] T-1.7 | server-dev | Item affixes (10) — rules level: affixes.ts + YAML + parity fixture (client item instances = T-1.7b) | test: tests/affixes.test.ts (20) + client/tests/test_rules_affixes.gd (11)
 - [ ] ready T-1.7b | godot-dev | Inventory item instances with rolled affixes; drops carry affixes; comparison shows affix stats | test: GUT
 - [ ] blocked T-1.8 | game-designer | Final XP curve 1–30 | test: sim: level 30 ≈ 12 h | reason: needs T-1.6 monsters for a meaningful sim
 
 ## Phase 2 — Multiplayer (engineering-only; started early because Phase 1 content is blocked on Q1)
-- [ ] in-progress T-2.1 | protocol-designer | protocol.md v1: join/leave/input/state/attack/damage/loot/chat + Zod + protocol.gd | test: check_protocol_sync green
+- [x] T-2.1 | protocol-designer | protocol.md v1: 16 messages (join/joined/leave/left/input/state/attack/damage/died/loot_pickup/loot/chat/chat_msg + ping/pong/error) + Zod + protocol.gd | test: check_protocol_sync green; tests/protocol.test.ts (65)
 - [ ] ready T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: sim_clients 4
 - [ ] ready T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: 200 ms simulated latency, no jitter
 - [ ] ready T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
@@ -61,7 +62,7 @@
 - [ ] ready T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/
 
 ## Polish (Phase 0 leftovers)
-- [ ] in-progress T-0.15 | godot-dev | Block attacks/skills while a dialogue, shop or inventory panel is open | test: GUT
+- [x] T-0.15 | godot-dev | Block attacks/skills while a dialogue, shop or inventory panel is open | test: test_game_session.gd::test_open_panel_blocks_attacks_but_not_movement
 
 ### QA reports
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
@@ -75,3 +76,6 @@
 - T-0.11/T-0.13: PASS — 52 module tests + 5 end-to-end session tests (drop → bag, equip → server attack, consumable → server heal, quit-and-reload restores level/hp/bag/gear/position, corrupt save boots fresh). QA fixes: consumables had hp 0 (nothing could heal); inventory button overlapped the title at 390 px. Lead wired the modules (LocalServer.set_gear_bonus/heal/set_hp, ClinicLobby drop routing, main.gd autosave every 30 s + on level-up + on window close).
 - T-0.7 (skills): PASS — server-gated unlock/cooldown on the LocalServer clock, rejection reasons tested, hits×power verified against RulesCombat with a seeded rng; the only damage call is still local_server.gd. Lead wired SkillBar into main.tscn; QA fix: the bar overlapped the ground row at 390 px — moved into the strip between map and joystick.
 - T-0.12 (NPC/shop): PASS — buy/sell/refund/bag-full/no-money paths tested, prices only via RulesEconomy; money saved and restored; a real kill credits money. QA fix: the active shop tab was rendered disabled (looked inverted) — now a pressed toggle. Known gap: the player can still attack while a dialogue/shop is open (no ui_blocking hook yet).
+- T-1.7: PASS — roll bounds/pool/weights verified on both sides via fixtures/affixes.json; 10k-roll distribution within 3%. No client integration yet (T-1.7b).
+- T-2.1: PASS — every message has valid + out-of-bounds tests; check_protocol_sync fixed (prettier pads table cells, the regex assumed none). Design notes: facts never omit fields (null instead), input failures are dropped silently (amplification), died carries killer_id. T-2.2 must add PICKUP_RADIUS_PX to shared-rules constants.
+- T-0.15: PASS — note for GUT tests: wait_frames() advances physics but not idle _process; await get_tree().process_frame for _process-driven logic.
