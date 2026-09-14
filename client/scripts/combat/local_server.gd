@@ -26,6 +26,8 @@ signal xp_gained(id: String, amount: float, total_xp: float, level: float)
 signal level_up(id: String, new_level: float, stats: Dictionary)
 ## T-0.11/T-0.13 wiring: a consumable was used / hp restored by the server.
 signal healed(id: String, amount: float, new_hp: float)
+## T-0.12: currency the killer receives for a kill (RulesEconomy.roll_money over monsters.yaml money).
+signal money_dropped(killer_id: String, amount: float)
 
 ## Seeded so tests can predict rolls: create a second RandomNumberGenerator
 ## with the same seed and call randf() the same number of times.
@@ -85,6 +87,8 @@ func register(id: String, stats: Dictionary, progression_archetype: String = "")
 		"archetype": archetype,
 		"xp": float(stats.get("xp", 0.0)),
 		"loot_table": String(stats.get("loot_table", "")),
+		"money_min": float((stats.get("money", {}) as Dictionary).get("min", 0)),
+		"money_max": float((stats.get("money", {}) as Dictionary).get("max", 0)),
 		"alive": true,
 		"consecutive_hits": 0.0,
 		"crash_active": false,
@@ -297,6 +301,10 @@ func _grant_xp_to_killer(victim: Dictionary) -> void:
 		return
 
 	var xp_amount: float = victim.xp
+	if victim.money_max > 0.0:
+		var money: float = RulesEconomy.roll_money(victim.money_min, victim.money_max, rng.randf())
+		if money > 0.0:
+			money_dropped.emit(killer_id, money)
 	killer.total_xp += xp_amount
 	var new_level: float = RulesXp.level_for_xp(killer.total_xp)
 	xp_gained.emit(killer_id, xp_amount, killer.total_xp, new_level)

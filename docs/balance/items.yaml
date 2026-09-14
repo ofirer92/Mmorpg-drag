@@ -39,6 +39,32 @@ items:
     value: 5
     stats: {attack: 0, defense: 0, hp: 25}   # it's a placebo. it works anyway.
   # --- end placeholder ---
+  # --- placeholder batch 2 (Q5) ---
+  intern_coat:
+    name_key: item.intern_coat.name
+    slot: body
+    rarity: common
+    value: 18
+    stats: {attack: 0, defense: 2, hp: 10}
+  hazmat_hairnet:
+    name_key: item.hazmat_hairnet.name
+    slot: head
+    rarity: rare
+    value: 40
+    stats: {attack: 0, defense: 4, hp: 5}
+  stapler_of_authority:
+    name_key: item.stapler_of_authority.name
+    slot: weapon
+    rarity: rare
+    value: 60
+    stats: {attack: 6, defense: 0, hp: 0}
+  expired_prescription:
+    name_key: item.expired_prescription.name
+    slot: consumable
+    rarity: common
+    value: 9
+    stats: {attack: 0, defense: 0, hp: 40}   # heal amount
+  # --- end placeholder batch 2 ---
 loot_tables:
   common_trash:
     rolls: 1

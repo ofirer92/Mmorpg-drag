@@ -9,6 +9,7 @@
 - [ ] Q3: monsters.yaml has 2 ENGINEERING PLACEHOLDER monsters (lost_referral, form_27b) so T-0.9 can show 3 AI kinds. game-designer replaces names/numbers in T-0.7. OK? (not blocking)
 - [ ] Q4: classes.yaml `growth` per archetype and the retuned xp_curve.yaml are ENGINEERING PLACEHOLDERS (stim reaches level 10 in ~10 min, numb ~24). game-designer owns them in T-0.7/T-1.8. OK? (not blocking)
 - [ ] Q5: items.yaml has 5 placeholder items (2 weapons, head, body, consumable) with stats; consumables' `stats.hp` = heal amount. game-designer replaces in T-0.7. OK? (not blocking)
+- [ ] Q6: on the human's 'add features' instruction, T-0.7 and T-0.12 were built with PLACEHOLDER skills (5 Stim skills), NPC lines (pharmacist), shop stock and a currency ("אישורי החזר"). All live in docs/balance/*.yaml + docs/content — swap freely. OK? (not blocking)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -28,14 +29,14 @@
 - [x] T-0.4 | godot-dev | Camera with deadzone + map limits | test: client/tests/test_camera.gd (4 tests)
 - [x] T-0.5 | godot-dev | Mobile controls: joystick + 3 buttons, auto-attack toggle | test: docs/screenshots/main_390x844.png + client/tests/test_touch_controls.gd (12)
 - [x] T-0.6 | server-dev | shared-rules: damage(), xp_for_level(), roll_loot() (+movement) | test: 64 vitest tests + client/tests/test_rules_combat.gd parity fixture
-- [ ] blocked T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items | test: validate_balance + balance_sim green | reason: waiting Q1 (real GDD) — skill names/mechanics are product decisions
+- [ ] in-progress T-0.7 | game-designer | YAML: Stim (5 skills, levels 1–10), 3 monsters, 10 items — PLACEHOLDER content (Q6) + skill system in the game | test: validate_balance + balance_sim green; client/tests/test_skills*.gd
 - [x] T-0.8 | godot-dev | "Crash" mechanic: after 4 consecutive hits → 2 s of ×2 damage taken (numbers from classes.yaml stim.mechanics.crash via shared-rules) | test: client/tests/test_local_server.gd + docs/playtest_notes.md
 - [x] T-0.9 | godot-dev | Monsters: simple AI (patrol/chase/attack), HP bar, death + drop | test: client/tests/test_monster_ai.gd (5) + docs/screenshots/arena_1920x1080.png (3 kinds; placeholders per Q3)
 - [x] T-0.10 | godot-dev | XP, level-up, stats UI | test: client/tests/test_progression_flow.gd + test_hud.gd; balance_sim time-to-level-10 table (stim 10 min, others 12–24)
 - [x] T-0.11 | godot-dev | Basic inventory + gear comparison | test: docs/screenshots/inventory_390x844.png + client/tests/test_inventory*.gd (39) + test_game_session.gd
-- [ ] blocked T-0.12 | game-designer + godot-dev | NPC "רוקח": 3 dialogue lines + shop | test: buy/sell tested | reason: waiting Q1
+- [ ] in-progress T-0.12 | game-designer + godot-dev | NPC "רוקח": 3 dialogue lines + shop — PLACEHOLDER content (Q6) | test: buy/sell tested (client/tests/test_shop*.gd)
 - [x] T-0.13 | godot-dev | Local save (JSON) | test: client/tests/test_game_session.gd::test_quit_and_reload_keeps_state (+ test_save_game.gd 13)
-- [ ] ready T-0.14 | devops | Export Android APK + Windows | test: APK runs (human confirms) | note: I18nBoot reads `res://../docs/content/*.yaml` — outside the .pck; export must copy content into client/ (or gen_rules emits a .gd table). Needs export templates (~1 GB download) + export_presets.cfg.
+- [ ] deferred T-0.14 | devops | Export Android APK + Windows | test: APK runs (human confirms) | note: I18nBoot reads `res://../docs/content/*.yaml` — outside the .pck; export must copy content into client/ (or gen_rules emits a .gd table). Needs export templates (~1 GB download) + export_presets.cfg.
 
 ### QA reports
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.

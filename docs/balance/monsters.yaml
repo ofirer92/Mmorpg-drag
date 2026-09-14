@@ -5,6 +5,7 @@
 version: 1
 monsters:
   side_effect_slime:
+    money: {min: 1, max: 4}   # currency drop range (RulesEconomy.roll_money)
     name_key: monster.side_effect_slime.name
     level: 1
     hp: 60
@@ -22,6 +23,7 @@ monsters:
       leash_radius: 320
       patrol_distance: 96
   lost_referral:
+    money: {min: 3, max: 7}   # currency drop range (RulesEconomy.roll_money)
     name_key: monster.lost_referral.name
     level: 2
     hp: 80
@@ -39,6 +41,7 @@ monsters:
       leash_radius: 480
       patrol_distance: 64
   form_27b:
+    money: {min: 6, max: 14}   # currency drop range (RulesEconomy.roll_money)
     name_key: monster.form_27b.name
     level: 3
     hp: 140

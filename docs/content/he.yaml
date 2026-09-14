@@ -42,3 +42,32 @@ ui.hud.level_up: אושרה עלייה במינון
 ui.inventory.stat.attack: התקפה
 ui.inventory.stat.defense: הגנה
 ui.inventory.stat.hp: בריאות
+skill.stim_double_dose.name: מנה כפולה
+skill.stim_double_dose.desc: פעמיים המינון, פעמיים הטופס. אושר בדיעבד.
+skill.stim_paper_cut.name: חיתוך נייר
+skill.stim_paper_cut.desc: שלושה חתכים דקים. בשלושה עותקים.
+skill.stim_rush_order.name: הזמנה דחופה
+skill.stim_rush_order.desc: זינוק קדימה. התור ממתין, הרוקח לא.
+skill.stim_overdose_form.name: טופס מינון-יתר
+skill.stim_overdose_form.desc: מכה אדירה. ועדת האתיקה תשמע על זה.
+item.intern_coat.name: חלוק מתמחה (מידה אחת)
+item.hazmat_hairnet.name: רשת שיער לחומרים מסוכנים
+item.stapler_of_authority.name: שדכן הסמכות
+item.expired_prescription.name: מרשם שפג תוקפו
+npc.pharmacist.name: רוקח בכיר משה
+npc.pharmacist.greet: שלום. מספר בתור? אין? אז אתה אחרי כולם.
+npc.pharmacist.shop: המחירים כוללים מע"מ, ועדה, וחתימת מנהל. אין החזרים.
+npc.pharmacist.bye: להתראות. תופעות הלוואי לא באחריותנו.
+ui.currency.name: אישורי החזר
+ui.shop.title: בית מרקחת
+ui.shop.buy: רכישה
+ui.shop.sell: מכירה
+ui.shop.buy_tab: מלאי
+ui.shop.sell_tab: התיק שלך
+ui.shop.close: סגור
+ui.shop.no_money: אין מספיק אישורים. נסה שוב בשנה הבאה.
+ui.shop.full: התיק מלא. הגש בקשה לתיק נוסף.
+ui.dialogue.next: הבא
+ui.dialogue.talk: דבר
+ui.skills.title: נהלים
+ui.skills.locked: נעול עד דרגה %d

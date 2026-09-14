@@ -5,5 +5,7 @@ export * from "./combat.js";
 export * from "./loot.js";
 export * from "./status.js";
 export * from "./progression.js";
+export * from "./skills.js";
+export * from "./economy.js";
 export * from "./protocol.js";
 export * as balance from "./_balance_data.js";

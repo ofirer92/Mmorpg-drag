@@ -96,6 +96,7 @@ func setup(server: LocalServer, target_node: Node2D) -> void:
 			"hp": stats.get("hp", 1.0),
 			"xp": stats.get("xp", 0.0),
 			"loot_table": stats.get("loot_table", ""),
+			"money": stats.get("money", {}),
 		}
 	)
 	if hp_bar != null:

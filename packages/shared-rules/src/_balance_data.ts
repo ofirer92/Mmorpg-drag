@@ -23,7 +23,58 @@ export const CLASSES = {
           "desc_key": "skill.stim_jab.desc",
           "level": 1,
           "power": 1.0,
+          "hits": 1,
           "cooldown": 0.0,
+          "crash_hits": 0,
+          "range_px": 40,
+          "animation": "attack_placeholder"
+        },
+        {
+          "id": "stim_double_dose",
+          "name_key": "skill.stim_double_dose.name",
+          "desc_key": "skill.stim_double_dose.desc",
+          "level": 3,
+          "power": 1.6,
+          "hits": 1,
+          "cooldown": 4.0,
+          "crash_hits": 0,
+          "range_px": 40,
+          "animation": "attack_placeholder"
+        },
+        {
+          "id": "stim_paper_cut",
+          "name_key": "skill.stim_paper_cut.name",
+          "desc_key": "skill.stim_paper_cut.desc",
+          "level": 5,
+          "power": 0.7,
+          "hits": 3,
+          "cooldown": 6.0,
+          "crash_hits": 0,
+          "range_px": 48,
+          "animation": "attack_placeholder"
+        },
+        {
+          "id": "stim_rush_order",
+          "name_key": "skill.stim_rush_order.name",
+          "desc_key": "skill.stim_rush_order.desc",
+          "level": 7,
+          "power": 2.2,
+          "hits": 1,
+          "cooldown": 10.0,
+          "crash_hits": 0,
+          "range_px": 96,
+          "animation": "attack_placeholder"
+        },
+        {
+          "id": "stim_overdose_form",
+          "name_key": "skill.stim_overdose_form.name",
+          "desc_key": "skill.stim_overdose_form.desc",
+          "level": 10,
+          "power": 3.5,
+          "hits": 1,
+          "cooldown": 20.0,
+          "crash_hits": 2,
+          "range_px": 40,
           "animation": "attack_placeholder"
         }
       ],
@@ -196,6 +247,50 @@ export const ITEMS: ItemsData = {
         "defense": 0,
         "hp": 25
       }
+    },
+    "intern_coat": {
+      "name_key": "item.intern_coat.name",
+      "slot": "body",
+      "rarity": "common",
+      "value": 18,
+      "stats": {
+        "attack": 0,
+        "defense": 2,
+        "hp": 10
+      }
+    },
+    "hazmat_hairnet": {
+      "name_key": "item.hazmat_hairnet.name",
+      "slot": "head",
+      "rarity": "rare",
+      "value": 40,
+      "stats": {
+        "attack": 0,
+        "defense": 4,
+        "hp": 5
+      }
+    },
+    "stapler_of_authority": {
+      "name_key": "item.stapler_of_authority.name",
+      "slot": "weapon",
+      "rarity": "rare",
+      "value": 60,
+      "stats": {
+        "attack": 6,
+        "defense": 0,
+        "hp": 0
+      }
+    },
+    "expired_prescription": {
+      "name_key": "item.expired_prescription.name",
+      "slot": "consumable",
+      "rarity": "common",
+      "value": 9,
+      "stats": {
+        "attack": 0,
+        "defense": 0,
+        "hp": 40
+      }
     }
   },
   "loot_tables": {
@@ -239,6 +334,10 @@ export const MONSTERS = {
   "version": 1,
   "monsters": {
     "side_effect_slime": {
+      "money": {
+        "min": 1,
+        "max": 4
+      },
       "name_key": "monster.side_effect_slime.name",
       "level": 1,
       "hp": 60,
@@ -258,6 +357,10 @@ export const MONSTERS = {
       }
     },
     "lost_referral": {
+      "money": {
+        "min": 3,
+        "max": 7
+      },
       "name_key": "monster.lost_referral.name",
       "level": 2,
       "hp": 80,
@@ -277,6 +380,10 @@ export const MONSTERS = {
       }
     },
     "form_27b": {
+      "money": {
+        "min": 6,
+        "max": 14
+      },
       "name_key": "monster.form_27b.name",
       "level": 3,
       "hp": 140,
@@ -294,6 +401,33 @@ export const MONSTERS = {
         "leash_radius": 260,
         "patrol_distance": 128
       }
+    }
+  }
+} as const;
+
+export const NPCS = {
+  "version": 1,
+  "npcs": {
+    "pharmacist": {
+      "name_key": "npc.pharmacist.name",
+      "role": "shop",
+      "lines": {
+        "greet": "npc.pharmacist.greet",
+        "shop": "npc.pharmacist.shop",
+        "bye": "npc.pharmacist.bye"
+      },
+      "quirk": "stamps every sentence (see docs/content/npcs.md)",
+      "stock": [
+        "expired_bandage",
+        "placebo_pill",
+        "expired_prescription",
+        "rubber_stamp_sword",
+        "intern_coat"
+      ],
+      "map_cell": [
+        6,
+        17
+      ]
     }
   }
 } as const;

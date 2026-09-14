@@ -13,13 +13,59 @@ archetypes:
       hp: 7
       attack: 1.2
       defense: 0.4
+    # ⚠️ ENGINEERING PLACEHOLDER skills (Q6) — names/numbers are the game-designer's in T-0.7 after Q1.
+    # power = multiplier on attack per hit; hits = number of hits; cooldown in seconds (0 = basic attack);
+    # crash_hits = extra consecutive-hit counter increments (self-crash risk); range_px = reach.
     skills:
       - id: stim_jab
         name_key: skill.stim_jab.name
         desc_key: skill.stim_jab.desc
         level: 1
-        power: 1.0         # multiplier on base_attack
+        power: 1.0
+        hits: 1
         cooldown: 0.0
+        crash_hits: 0
+        range_px: 40
+        animation: attack_placeholder
+      - id: stim_double_dose
+        name_key: skill.stim_double_dose.name
+        desc_key: skill.stim_double_dose.desc
+        level: 3
+        power: 1.6
+        hits: 1
+        cooldown: 4.0
+        crash_hits: 0
+        range_px: 40
+        animation: attack_placeholder
+      - id: stim_paper_cut
+        name_key: skill.stim_paper_cut.name
+        desc_key: skill.stim_paper_cut.desc
+        level: 5
+        power: 0.7
+        hits: 3
+        cooldown: 6.0
+        crash_hits: 0
+        range_px: 48
+        animation: attack_placeholder
+      - id: stim_rush_order
+        name_key: skill.stim_rush_order.name
+        desc_key: skill.stim_rush_order.desc
+        level: 7
+        power: 2.2
+        hits: 1
+        cooldown: 10.0
+        crash_hits: 0
+        range_px: 96
+        animation: attack_placeholder
+      - id: stim_overdose_form
+        name_key: skill.stim_overdose_form.name
+        desc_key: skill.stim_overdose_form.desc
+        level: 10
+        power: 3.5
+        hits: 1
+        cooldown: 20.0
+        crash_hits: 2
+        range_px: 40
         animation: attack_placeholder
     mechanics:
       crash:

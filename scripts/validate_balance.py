@@ -77,8 +77,23 @@ def main() -> int:
             require(growth, ["hp", "attack", "defense"], f"classes.{aid}.growth")
         for s in a.get("skills", []) or []:
             require(
-                s, ["id", "name_key", "desc_key", "level", "power", "cooldown", "animation"], f"skill {s.get('id')}"
+                s,
+                [
+                    "id",
+                    "name_key",
+                    "desc_key",
+                    "level",
+                    "power",
+                    "hits",
+                    "cooldown",
+                    "crash_hits",
+                    "range_px",
+                    "animation",
+                ],
+                f"skill {s.get('id')}",
             )
+            if not 1 <= s.get("level", 0) <= xp.get("max_level", 30):
+                err(f"skill {s.get('id')}: level must be within 1..max_level")
             if s.get("id") in skill_ids:
                 err(f"duplicate skill id {s['id']}")
             skill_ids.add(s.get("id"))
@@ -126,6 +141,11 @@ def main() -> int:
             err(f"monsters.{mid}: ai must be patrol|chase|boss")
         if m.get("hp", 1) <= 0:
             err(f"monsters.{mid}: hp must be > 0")
+        money = m.get("money")
+        if not isinstance(money, dict) or "min" not in money or "max" not in money:
+            err(f"monsters.{mid}: missing money {{min, max}}")
+        elif money["max"] < money["min"]:
+            err(f"monsters.{mid}: money.max < money.min")
         ai = m.get("ai_params")
         if not isinstance(ai, dict):
             err(f"monsters.{mid}: missing ai_params")
@@ -138,7 +158,23 @@ def main() -> int:
             if ai.get("leash_radius", 0) < ai.get("aggro_radius", 0):
                 err(f"monsters.{mid}: leash_radius must be ≥ aggro_radius")
 
-    for doc, name in ((xp, "xp_curve"), (classes, "classes"), (items_doc, "items"), (monsters, "monsters")):
+    npcs = load("npcs.yaml").get("npcs", {})
+    for nid, n in npcs.items():
+        require(n, ["name_key", "role", "lines", "stock", "map_cell"], f"npcs.{nid}")
+        keys_used.add(n.get("name_key", ""))
+        for line_key in (n.get("lines") or {}).values():
+            keys_used.add(line_key)
+        for sid in n.get("stock", []) or []:
+            if sid not in items:
+                err(f"npcs.{nid}: unknown stock item {sid}")
+
+    for doc, name in (
+        (xp, "xp_curve"),
+        (classes, "classes"),
+        (items_doc, "items"),
+        (monsters, "monsters"),
+        (npcs, "npcs"),
+    ):
         no_negatives(doc, name)
     for k in keys_used:
         if k and k not in he:
@@ -148,7 +184,8 @@ def main() -> int:
         print("❌ validate_balance:")
         [print("  -", e) for e in errors]
         return 1
-    summary = f"{len(classes)} archetypes, {len(skill_ids)} skills, {len(monsters)} monsters, {len(items)} items"
+    counts = [len(classes), len(skill_ids), len(monsters), len(items), len(npcs)]
+    summary = "%d archetypes, %d skills, %d monsters, %d items, %d npcs" % tuple(counts)
     print(f"✅ balance ok: {summary}")
     return 0
 

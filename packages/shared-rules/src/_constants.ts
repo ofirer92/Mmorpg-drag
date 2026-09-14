@@ -6,3 +6,5 @@ export const DEF_SCALE: number = 20;
 export const CRIT_CHANCE: number = 0.05;
 export const CRIT_MULT: number = 1.5;
 export const MIN_DAMAGE: number = 1;
+export const BUY_PRICE_MULT: number = 2;
+export const SELL_PRICE_MULT: number = 0.5;

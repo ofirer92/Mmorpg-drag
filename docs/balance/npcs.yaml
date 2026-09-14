@@ -1,0 +1,19 @@
+# NPCs and shops. ⚠️ ENGINEERING PLACEHOLDER content (Q6) — game-designer owns names, lines and stock (T-0.12).
+# Prices: buy = value × BUY_PRICE_MULT, sell = floor(value × SELL_PRICE_MULT) (shared-rules economy.ts).
+version: 1
+npcs:
+  pharmacist:
+    name_key: npc.pharmacist.name
+    role: shop
+    lines:
+      greet: npc.pharmacist.greet
+      shop: npc.pharmacist.shop
+      bye: npc.pharmacist.bye
+    quirk: stamps every sentence (see docs/content/npcs.md)
+    stock:              # item ids sold; sell-back accepts any item
+      - expired_bandage
+      - placebo_pill
+      - expired_prescription
+      - rubber_stamp_sword
+      - intern_coat
+    map_cell: [6, 17]   # clinic_lobby tile cell (x, y) — standing on the ground row

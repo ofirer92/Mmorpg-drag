@@ -42,3 +42,32 @@ ui.hud.level_up: Dosage Increase Approved
 ui.inventory.stat.attack: Attack
 ui.inventory.stat.defense: Defense
 ui.inventory.stat.hp: Health
+skill.stim_double_dose.name: Double Dose
+skill.stim_double_dose.desc: Twice the dose, twice the form. Approved retroactively.
+skill.stim_paper_cut.name: Paper Cut
+skill.stim_paper_cut.desc: Three thin cuts. In triplicate.
+skill.stim_rush_order.name: Rush Order
+skill.stim_rush_order.desc: A lunge forward. The queue waits, the pharmacist does not.
+skill.stim_overdose_form.name: Overdose Form
+skill.stim_overdose_form.desc: A massive hit. The ethics committee will hear about this.
+item.intern_coat.name: Intern Coat (one size)
+item.hazmat_hairnet.name: Hazmat Hairnet
+item.stapler_of_authority.name: Stapler of Authority
+item.expired_prescription.name: Expired Prescription
+npc.pharmacist.name: Senior Pharmacist Moshe
+npc.pharmacist.greet: Hello. Queue number? None? Then you're after everyone.
+npc.pharmacist.shop: Prices include VAT, committee, and a manager's signature. No refunds.
+npc.pharmacist.bye: Goodbye. Side effects are not our liability.
+ui.currency.name: Reimbursement Approvals
+ui.shop.title: Pharmacy
+ui.shop.buy: Buy
+ui.shop.sell: Sell
+ui.shop.buy_tab: Stock
+ui.shop.sell_tab: Your Bag
+ui.shop.close: Close
+ui.shop.no_money: Not enough approvals. Try again next fiscal year.
+ui.shop.full: Bag full. File a request for an additional bag.
+ui.dialogue.next: Next
+ui.dialogue.talk: Talk
+ui.skills.title: Protocols
+ui.skills.locked: Locked until grade %d
