@@ -14,6 +14,7 @@ var _elapsed: float = 0.0
 func enter(_prev: StringName) -> void:
 	_elapsed = 0.0
 	actor.play_animation(&"attack")
+	actor.perform_attack()
 
 
 func exit() -> void:

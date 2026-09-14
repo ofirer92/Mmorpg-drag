@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/test/arena.gd" id="1_arena"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/combat/local_server.gd" id="3_server"]
+[ext_resource type="PackedScene" path="res://scenes/monsters/monster.tscn" id="4_monster"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2400, 64)
+
+[node name="Arena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="LocalServer" type="Node" parent="."]
+script = ExtResource("3_server")
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(1200, 732)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(150, 685)
+
+[node name="SideEffectSlime" parent="." instance=ExtResource("4_monster")]
+position = Vector2(600, 685)
+monster_id = "side_effect_slime"
+
+[node name="LostReferral" parent="." instance=ExtResource("4_monster")]
+position = Vector2(1300, 685)
+monster_id = "lost_referral"
+
+[node name="Form27b" parent="." instance=ExtResource("4_monster")]
+position = Vector2(2000, 685)
+monster_id = "form_27b"

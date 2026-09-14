@@ -1,0 +1,11 @@
+# Placeholder spritesheet spec for the side_effect_slime monster (T-0.9).
+# Colour: grey-green (matches "side-effect slime" flavour).
+name: monster_side_effect_slime
+size: 32
+colour: "#8FA872"
+frames:
+  idle: 2
+  run: 4
+  attack: 3
+  hurt: 1
+  dead: 1

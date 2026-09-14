@@ -1,0 +1,17 @@
+size: 32
+rows:
+  idle:
+    row: 0
+    frames: 2
+  run:
+    row: 1
+    frames: 4
+  attack:
+    row: 2
+    frames: 3
+  hurt:
+    row: 3
+    frames: 1
+  dead:
+    row: 4
+    frames: 1

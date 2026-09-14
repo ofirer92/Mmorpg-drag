@@ -12,3 +12,7 @@ error.invalid_message: The submitted form is invalid. Please resubmit in triplic
 error.rate_limited: Daily inquiry quota exceeded. The clinic is closed for lunch.
 monster.lost_referral.name: Lost Referral
 monster.form_27b.name: Form 27-B
+ui.touch.jump: Approved Jump
+ui.touch.attack: Immediate Treatment
+ui.touch.skill: Emergency Protocol
+ui.touch.auto_attack: Auto-Treatment
