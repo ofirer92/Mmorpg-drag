@@ -10,5 +10,9 @@ gd=$( [[ -f client/scripts/rules/protocol.gd ]] && sed -n '/MESSAGE_TYPES/,/\]/p
 ok=0
 if [[ "$md" != "$ts" ]]; then echo "❌ protocol.md ≠ protocol.ts"; diff <(echo "$md") <(echo "$ts"); ok=1; fi
 if [[ "$ts" != "$gd" ]]; then echo "❌ protocol.ts ≠ protocol.gd (run scripts/gen_rules.py)"; diff <(echo "$ts") <(echo "$gd"); ok=1; fi
-[[ $ok -eq 0 ]] && echo "protocol in sync: $(echo $md | tr '\n' ' ')"
+vmd=$(grep -oE '^Version: \*\*[0-9]+\*\*' docs/protocol.md | grep -oE '[0-9]+' | head -1)
+vts=$(grep -oE 'PROTOCOL_VERSION *= *[0-9]+' packages/shared-rules/src/protocol.ts | grep -oE '[0-9]+' | head -1)
+vgd=$(grep -oE 'PROTOCOL_VERSION: int = [0-9]+' client/scripts/rules/protocol.gd | grep -oE '[0-9]+' | head -1)
+if [[ "$vmd" != "$vts" || "$vts" != "$vgd" ]]; then echo "❌ PROTOCOL_VERSION differs: md=$vmd ts=$vts gd=$vgd"; ok=1; fi
+[[ $ok -eq 0 ]] && echo "protocol in sync (v$vts): $(echo $md | tr '\n' ' ')"
 exit $ok

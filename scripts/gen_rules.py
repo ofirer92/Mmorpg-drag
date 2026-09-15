@@ -333,8 +333,11 @@ def translate(ts: str, stem: str) -> str:
 def gen_protocol_gd(ts: str) -> str:
     m = re.search(r"MESSAGE_TYPES\s*=\s*\[(.*?)\]", ts, re.S)
     types = re.findall(r'"([a-z_]+)"', m.group(1)) if m else []
+    ver = re.search(r"PROTOCOL_VERSION\s*=\s*(\d+)", ts)
+    version = int(ver.group(1)) if ver else 0
     body = (
-        "class_name RulesProtocol\n\nconst MESSAGE_TYPES: Array[String] = ["
+        f"class_name RulesProtocol\n\nconst PROTOCOL_VERSION: int = {version}\n\n"
+        + "const MESSAGE_TYPES: Array[String] = ["
         + ", ".join(f'"{t}"' for t in types)
         + "]\n\n"
     )
