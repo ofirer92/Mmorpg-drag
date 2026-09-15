@@ -1,5 +1,15 @@
 # PROGRESS
 
+## Session 8 — 2026-09-15 — Phase 2: combat through the server (in progress)
+**Done**
+- Session-start check green (vitest 165 + 36, GUT 232 / 29 scripts). T-2.4/T-2.5/T-2.6 delegated on disjoint trees: server-dev (server-side combat, monsters in the zone, private per-player drops, group XP in a new shared-rules party module) and godot-dev (CombatAuthority seam: LocalServer for solo, RemoteAuthority for net mode, server-driven monsters and drops).
+
+**Next**
+- Integrate both halves against the real server (headless net smoke + 4-client sim), then T-2.8 reconnect and T-2.9 removing single-player combat.
+
+**Broken / not verified**
+- Nothing new yet; agents still running.
+
 ## Session 7 — 2026-09-15 — Phase 2: server room + client net layer
 **Done**
 - T-2.2: authoritative Node server — one Zone (4 players, 20 Hz), tile collision + player sim on shared-rules movement, join/leave/input/state/chat, per-type rate limits, /health tick p95. Map layout moved to docs/maps (shared data, ADR-016). 36 server tests; live 4-client sim clean.

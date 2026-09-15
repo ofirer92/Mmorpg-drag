@@ -11,6 +11,7 @@
 - [ ] Q5: items.yaml has 5 placeholder items (2 weapons, head, body, consumable) with stats; consumables' `stats.hp` = heal amount. game-designer replaces in T-0.7. OK? (not blocking)
 - [ ] Q6: on the human's 'add features' instruction, T-0.7 and T-0.12 were built with PLACEHOLDER skills (5 Stim skills), NPC lines (pharmacist), shop stock and a currency ("אישורי החזר"). All live in docs/balance/*.yaml + docs/content — swap freely. OK? (not blocking)
 - [ ] Q7: items.yaml `affixes` (10 satire affixes, slot ranges per rarity) are ENGINEERING PLACEHOLDERS. game-designer owns them (T-1.7 content). OK? (not blocking)
+- [ ] Q8: docs/balance/party.yaml (group XP bonus curve) and the monster respawn delay are ENGINEERING PLACEHOLDERS. game-designer owns them. OK? (not blocking)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -54,9 +55,9 @@
 - [x] T-2.1 | protocol-designer | protocol.md v1: 16 messages (join/joined/leave/left/input/state/attack/damage/died/loot_pickup/loot/chat/chat_msg + ping/pong/error) + Zod + protocol.gd | test: check_protocol_sync green; tests/protocol.test.ts (65)
 - [x] T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: `pnpm sim -- --clients 4 --seconds 3` → 0 violations; server/tests/{zone_movement,room}.test.ts (29)
 - [x] T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: client/tests/test_net_session.gd (200 ms RTT, max backward delta < 4 px) + net_smoke scene vs the real server (exit 0)
-- [ ] ready T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
-- [ ] ready T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
-- [ ] ready T-2.6 | server-dev | Group XP bonus | test: shared-rules test
+- [ ] in-progress T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
+- [ ] in-progress T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
+- [ ] in-progress T-2.6 | server-dev | Group XP bonus | test: shared-rules test
 - [ ] ready T-2.7 | godot-dev | Chat + quick emoji (mobile) | test: screenshot
 - [ ] ready T-2.8 | server-dev + qa | Disconnect/reconnect mid-fight | test: GUT/vitest
 - [ ] ready T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/
