@@ -4,16 +4,35 @@ extends Node2D
 ## panel, the dialogue box + shop panel (T-0.12), and owns the local save
 ## (T-0.13). The I18n table itself is populated earlier, by the I18nBoot
 ## autoload (see client/scripts/i18n_boot.gd).
+##
+## T-2.3 NetMode switch: `net_url` empty (the default) = single-player,
+## exactly today's LocalServer-driven behaviour, byte-for-byte unchanged
+## (see client/tests/test_game_session.gd). `net_url` non-empty = a
+## NetSession (client/scripts/net/net_session.gd) connects and joins a real
+## server for movement sync/reconciliation/remote players. LocalServer keeps
+## running EITHER way in phase 2 — it still resolves this client's own
+## combat locally even while networked, a deliberate hybrid documented in
+## ADR-013: T-2.4 is what moves combat resolution to the server and turns
+## this into a true multiplayer client; T-2.9 removes LocalServer entirely.
 
 const ARCHETYPE: String = "stim"
 const AUTOSAVE_INTERVAL_S: float = 30.0
+## T-2.3: no character-select/auth flow exists yet — these are placeholder
+## credentials until a real login screen sends a real token/character_id.
+const DEV_TOKEN: String = "dev-token"
+const DEV_CHARACTER_ID: String = "char_dev"
 
 ## Tests point this at a scratch file; the game uses SaveGame.default_path().
 @export var save_path: String = ""
 ## Tests can disable loading so they start from a clean state.
 @export var load_on_ready: bool = true
+## T-2.3: ws:// URL of a real server. Empty = single-player. Overridden by
+## the HAMIRPAA_SERVER_URL env var or a `--server=...` cmdline arg if set.
+@export var net_url: String = ""
 
 var inventory: Inventory = Inventory.new()
+## Set only when networking is active (see _start_networking()).
+var net_client: NetClient = null
 
 @onready var clinic_lobby: ClinicLobby = $ClinicLobby
 @onready var hud: Hud = $Hud
@@ -22,6 +41,8 @@ var inventory: Inventory = Inventory.new()
 @onready var dialogue_box: DialogueBox = $DialogueBox
 @onready var shop_panel: ShopPanel = $ShopPanel
 @onready var autosave_timer: Timer = $AutosaveTimer
+@onready var net_session: NetSession = $NetSession
+@onready var net_status_label: Label = $NetLayer/NetStatusLabel
 
 
 func _ready() -> void:
@@ -45,7 +66,51 @@ func _ready() -> void:
 	autosave_timer.start()
 	if load_on_ready and SaveGame.exists(save_path):
 		apply_save(SaveGame.load(save_path))
+	net_status_label.visible = false
+	var resolved_url: String = _resolve_net_url()
+	if resolved_url != "":
+		_start_networking(resolved_url)
 	print("Hamirpaa boot ok — level %d" % int(server.get_level(Player.ENTITY_ID)))
+
+
+## `net_url` export wins; else HAMIRPAA_SERVER_URL env var; else a
+## `--server=...` cmdline arg; else "" (single-player).
+func _resolve_net_url() -> String:
+	if net_url != "":
+		return net_url
+	var env_url: String = OS.get_environment("HAMIRPAA_SERVER_URL")
+	if env_url != "":
+		return env_url
+	for arg: String in OS.get_cmdline_args():
+		if arg.begins_with("--server="):
+			return arg.substr("--server=".length())
+	return ""
+
+
+func _start_networking(url: String) -> void:
+	net_status_label.visible = true
+	net_status_label.text = I18n.t("ui.net.connecting")
+	net_client = NetClient.new()
+	add_child(net_client)
+	net_client.disconnected.connect(_on_net_disconnected)
+	net_client.error.connect(_on_net_error)
+	net_session.ready_to_play.connect(_on_net_ready_to_play)
+	net_session.begin(net_client, clinic_lobby.player, clinic_lobby, DEV_TOKEN, DEV_CHARACTER_ID)
+	net_client.connect_to(url)
+
+
+func _on_net_ready_to_play(_player_id: String) -> void:
+	net_status_label.visible = false
+
+
+func _on_net_disconnected(_code: int, _reason: String) -> void:
+	net_status_label.visible = true
+	net_status_label.text = I18n.t("ui.net.disconnected")
+
+
+func _on_net_error(data: Dictionary) -> void:
+	net_status_label.visible = true
+	net_status_label.text = I18n.t(String(data.get("msg_key", "ui.net.error")))
 
 
 ## T-0.15: any open panel blocks attacks/skills (polled; panels have no open/close signals in common).

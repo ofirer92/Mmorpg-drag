@@ -85,3 +85,6 @@ error.protocol_mismatch: Your client is an outdated edition of the form. Downloa
 error.invalid_token: Queue number not recognised. Please take a new one at the entrance.
 error.zone_full: The waiting room is at capacity. By order of the fire safety committee, please wait outside.
 error.not_alive: The deceased may not file requests. Please wait for administrative resuscitation.
+ui.net.connecting: Connecting to server...
+ui.net.disconnected: Disconnected from server.
+ui.net.error: Server communication error.

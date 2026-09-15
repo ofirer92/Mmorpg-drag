@@ -14,4 +14,14 @@ fi
 cd "$ROOT/client"
 # First run imports resources so scripts compile; ignore its exit code.
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
-"$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit -glog=1
+LOG="$(mktemp)"
+"$GODOT" --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit -glog=1 2>&1 | tee "$LOG"
+status=${PIPESTATUS[0]}
+# GUT silently skips a test script that fails to parse — treat that as a failure (a skipped file is a
+# false green). Also require every tests/test_*.gd to appear in the run.
+if grep -qE 'Failed to load script|Parse Error' "$LOG"; then echo "❌ a test script failed to load (see above)"; rm -f "$LOG"; exit 1; fi
+missing=0
+for f in tests/test_*.gd; do grep -q "res://$f" "$LOG" || { echo "❌ test script not run: $f"; missing=1; }; done
+rm -f "$LOG"
+[[ $missing -eq 0 ]] || exit 1
+exit "$status"

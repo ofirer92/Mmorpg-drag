@@ -87,6 +87,17 @@ var _default_hit_box_size: Vector2 = Vector2.ZERO
 var _anim_name: StringName = &"idle"
 var _anim_elapsed: float = 0.0
 
+## T-2.3 net layer hooks. `_last_input_*` are a snapshot of what this player
+## sampled on the physics tick that just ran — set at the end of
+## _step_physics(), before move_and_slide(), so NetSession (a later sibling
+## in the tree, processed after Player this same frame) reads exactly what
+## drove this tick's local prediction when it builds the wire `input`
+## message. Never read by game logic — net-only.
+var _last_input_dir: float = 0.0
+var _last_input_jump_held: bool = false
+var _last_input_attack: bool = false
+var _last_input_skill_id: String = ""
+
 
 func _ready() -> void:
 	play_animation(&"idle")
@@ -320,6 +331,11 @@ func _step_physics(delta: float) -> void:
 		skill_requested = true
 		_next_attack_kind = "selected"
 
+	_last_input_dir = input_dir
+	_last_input_jump_held = _jump_held
+	_last_input_attack = _injected_attack_pressed
+	_last_input_skill_id = selected_skill_id if _injected_skill_pressed else ""
+
 	move_and_slide()
 
 
@@ -353,6 +369,29 @@ func hurt() -> void:
 ## Server told us HP hit 0. This does NOT compute death conditions.
 func die() -> void:
 	state_machine.request_transition(&"Dead")
+
+
+## T-2.3 net layer hook (NetSession): the dir/jump/attack/skill this player
+## sampled on the last physics tick, ready to drop straight into a wire
+## `input` message (docs/protocol.md quantizes `dir` to -1|0|1 on the way
+## out — this returns the raw float, NetSession does the quantizing).
+func get_last_input() -> Dictionary:
+	return {
+		"dir": _last_input_dir,
+		"jump": _last_input_jump_held,
+		"attack": _last_input_attack,
+		"skill_id": _last_input_skill_id,
+	}
+
+
+## T-2.3 net layer hook (NetSession reconciliation): the server's position
+## differed from our local prediction by more than Prediction's epsilon —
+## snap this CharacterBody2D straight to the authoritative pos/vel. Never
+## called by game logic that decides positions itself; NetSession is the
+## only caller, and only when Prediction.on_state() reports a correction.
+func apply_authoritative(pos: Vector2, vel: Vector2) -> void:
+	global_position = pos
+	velocity = vel
 
 
 ## T-0.10: called by whoever owns the map (clinic_lobby.gd) AFTER it has

@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/net/remote_player.gd" id="1_remote"]
+[ext_resource type="Texture2D" path="res://assets/generated/stim.png" id="2_tex"]
+
+[node name="RemotePlayer" type="Node2D"]
+script = ExtResource("1_remote")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.55, 0.8, 1, 1)
+texture = ExtResource("2_tex")
+hframes = 4
+vframes = 6
+frame = 0
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -50.0
+offset_right = 40.0
+offset_bottom = -34.0
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+text = "player"

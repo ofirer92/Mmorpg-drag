@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b0hamirpaamain"]
+[gd_scene load_steps=10 format=3 uid="uid://b0hamirpaamain"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/maps/clinic_lobby.tscn" id="2_map"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="6_dlg"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_panel.tscn" id="7_shop"]
 [ext_resource type="PackedScene" path="res://scenes/ui/skill_bar.tscn" id="8_skills"]
+[ext_resource type="Script" path="res://scripts/net/net_session.gd" id="9_net"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -20,6 +21,22 @@ offset_top = 16.0
 offset_right = 374.0
 offset_bottom = 60.0
 text = "ui.title"
+
+[node name="NetLayer" type="CanvasLayer" parent="."]
+layer = 6
+
+[node name="NetStatusLabel" type="Label" parent="NetLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 44.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+visible = false
+text = "ui.net.connecting"
+
+[node name="NetSession" type="Node" parent="."]
+script = ExtResource("9_net")
 
 [node name="Hud" parent="." instance=ExtResource("4_hud")]
 

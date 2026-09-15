@@ -1,14 +1,20 @@
 # PROGRESS
 
-## Session 7 — 2026-09-15 — Phase 2: server room + client net layer (in progress)
+## Session 7 — 2026-09-15 — Phase 2: server room + client net layer
 **Done**
-- Session-start check green (vitest 165 + 7, GUT 212). T-2.2 (server room, authoritative movement, shared map layout in docs/maps) and T-2.3 (NetClient, prediction/reconciliation, remote players, net smoke scene) delegated to server-dev / godot-dev agents on disjoint trees.
+- T-2.2: authoritative Node server — one Zone (4 players, 20 Hz), tile collision + player sim on shared-rules movement, join/leave/input/state/chat, per-type rate limits, /health tick p95. Map layout moved to docs/maps (shared data, ADR-016). 36 server tests; live 4-client sim clean.
+- T-2.3: client NetClient/NetSession with prediction + reconciliation (2 px epsilon, replay), remote-player interpolation (100 ms), FakeTransport for tests, net_smoke headless scene verified against the real server. Net mode via HAMIRPAA_SERVER_URL / --server=; single-player path unchanged.
+- Tooling: PROTOCOL_VERSION generated into protocol.gd and checked; test_client.sh fails on unloadable test scripts (GUT used to skip them silently).
+- Totals: vitest 165 + 36, GUT 232 (29 scripts). check.sh GREEN in strict mode.
 
 **Next**
-- Integrate: run the headless net smoke scene against the real Node server; extend check_protocol_sync to PROTOCOL_VERSION; commit T-2.2/T-2.3; then T-2.4 combat through the server.
+- T-2.4 combat through the server (attack intent → damage/died facts; LocalServer becomes the local-mode adapter), then T-2.5 per-player loot, T-2.6 group xp, T-2.8 reconnect, T-2.9 remove single-player combat.
+- Human: Q1–Q7, Phase 0 playtest, first PR.
 
 **Broken / not verified**
-- Nothing new yet; agents still running.
+- Net mode is a hybrid: movement is server-authoritative, combat is still local (ADR-013) until T-2.4.
+- Server physics is a simplified AABB sim; the client reconciles, so small divergences are expected (ADR-016). No auth yet (any non-empty token joins) — T-3.2.
+- Controls anchored under the Node2D root collapse to content size; top-level UI must live in a CanvasLayer (noted by the net agent).
 
 ## Session 6 — 2026-09-14 — Phase 1/2 engineering: affix rules, protocol v1, UI blocking
 **Done**

@@ -52,8 +52,8 @@
 
 ## Phase 2 — Multiplayer (engineering-only; started early because Phase 1 content is blocked on Q1)
 - [x] T-2.1 | protocol-designer | protocol.md v1: 16 messages (join/joined/leave/left/input/state/attack/damage/died/loot_pickup/loot/chat/chat_msg + ping/pong/error) + Zod + protocol.gd | test: check_protocol_sync green; tests/protocol.test.ts (65)
-- [ ] in-progress T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: sim_clients 4
-- [ ] in-progress T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: 200 ms simulated latency, no jitter
+- [x] T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: `pnpm sim -- --clients 4 --seconds 3` → 0 violations; server/tests/{zone_movement,room}.test.ts (29)
+- [x] T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: client/tests/test_net_session.gd (200 ms RTT, max backward delta < 4 px) + net_smoke scene vs the real server (exit 0)
 - [ ] ready T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
 - [ ] ready T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
 - [ ] ready T-2.6 | server-dev | Group XP bonus | test: shared-rules test
@@ -79,3 +79,5 @@
 - T-1.7: PASS — roll bounds/pool/weights verified on both sides via fixtures/affixes.json; 10k-roll distribution within 3%. No client integration yet (T-1.7b).
 - T-2.1: PASS — every message has valid + out-of-bounds tests; check_protocol_sync fixed (prettier pads table cells, the regex assumed none). Design notes: facts never omit fields (null instead), input failures are dropped silently (amplification), died carries killer_id. T-2.2 must add PICKUP_RADIUS_PX to shared-rules constants.
 - T-0.15: PASS — note for GUT tests: wait_frames() advances physics but not idle _process; await get_tree().process_frame for _process-driven logic.
+- T-2.2: PASS — live sim 4 clients × 3 s: joined 4, 0 violations, p95 RTT 1 ms, tick p95 0.5 ms. Map layout is now shared data (docs/maps/clinic_lobby.yaml, GUT parity test). loot_pickup is a documented no-op until T-2.5.
+- T-2.3: PASS — headless net_smoke scene against the real server: joined, 40 states, last_seq 39, exit 0. QA fix: the client carried its own PROTOCOL_VERSION copy — now generated into protocol.gd and cross-checked by check_protocol_sync. QA finding: GUT silently skips a test script that fails to parse and the run still reported green; test_client.sh now fails on any unloadable script and on any tests/test_*.gd missing from the run (verified with a deliberately broken file).
