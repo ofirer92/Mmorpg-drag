@@ -144,3 +144,51 @@ Decision:
   are marked ⚠️ PLACEHOLDER in the file, and (c) are logged as a Question for human in TASKS.md.
   Consequences: swapping content never touches code; phase 2 replaces LocalServer without changing the
   skill/shop UI.
+
+## ADR-016 — T-2.2: map layout is shared data; server physics is a simplified AABB/tile sim
+
+Date: 2026-09-15 · Status: accepted
+Context: T-2.2 gives the server one authoritative room (Zone) at 20 Hz, with real player movement. Two
+things previously lived only in the client and needed a single source of truth: (1) the tile layout
+(client/scripts/maps/clinic_lobby.gd `LAYOUT`, 20×60 chars) and (2) the collision/physics simulation
+(client/scripts/player/player.gd's `_step_physics()`, driving a Godot `CharacterBody2D` through
+`move_and_slide()`).
+
+Decision:
+
+- **Map layout is shared data**, the same way balance numbers are. `docs/maps/clinic_lobby.yaml`
+  ({id, tile*size, cols, rows, spawn, solid_chars, layout}) is copied verbatim from
+  `ClinicLobby.LAYOUT`/`GRID*_`/the `Spawn`marker and is the new source of truth.`scripts/gen*rules.py`gained`load_maps()`(docs/maps/\*.yaml → id-keyed dict, mirroring`load_balance()`) and `gen_maps_ts()`(an id-keyed`Record<string, MapDef>`, the same pattern ADR-012 used for `ITEMS.items`/`loot_tables`,
+since a map is looked up by a dynamic zone id). Both feed the existing `MAPS`key into`\_balance_data.ts`/`balance_data.gd`— no new generator output file.`client/tests/test_rules_maps.gd`(GUT) asserts`RulesBalanceData.MAPS.clinic_lobby`equals`ClinicLobby.LAYOUT`/`GRID*_`/`Spawn`exactly;
+the client itself keeps reading its own`LAYOUT`for now (migrating the client's map node to`RulesBalanceData.MAPS` is a follow-up task, not T-2.2 — CLAUDE.md reserves client/ changes for the
+  client agent).
+- **Server physics is a simplified, separately-implemented sim, not a port of `move_and_slide()`.**
+  `server/src/world/tilemap.ts` does axis-separated AABB-vs-tile collision (X sweep, then Y sweep, 1px
+  steps so a tick's worth of velocity can never tunnel through a thin tile) directly against a `MapDef`.
+  `server/src/world/player_sim.ts` drives it every tick using ONLY `packages/shared-rules/src/movement.ts`
+  (`step_horizontal`/`step_vertical`/`can_jump`/`jump_buffered`/`jump_cut` + constants) for every number —
+  it mirrors `player.gd`'s coyote-time/jump-buffer/jump-cut logic tick-for-tick, but the collision response
+  itself is a hand-rolled AABB sweep, not Godot's physics engine. This means the server's authoritative
+  position can diverge from the client's locally-predicted position by sub-pixel amounts at tile edges and
+  corners (two different collision algorithms, same rules-derived velocities).
+- **Divergence tolerance is the client's job.** Per docs/protocol.md's reconciliation flow (§ "Per-tick
+  input/state loop"), the client already snaps to the server's `state.pos` and replays unacked inputs
+  whenever its prediction disagrees — that mechanism absorbs this divergence. The server never trusts a
+  client-reported position (CLAUDE.md: "השרת אוטוריטטיבי"); it only ever computes its own.
+- `PICKUP_RADIUS_PX = 48` was added next to `INTEREST_RADIUS_PX` in `packages/shared-rules/src/_constants.ts`
+  (docs/protocol.md's `loot_pickup` row references it; loot itself is not implemented until a later task).
+
+Consequences: any future zone (a second map) only needs a new `docs/maps/*.yaml` file — no generator or
+schema change. If the sub-pixel divergence above ever proves visible/exploitable, replacing the server's
+tile sweep with a closer port of Godot's `move_and_slide()` is a contained change inside
+`server/src/world/tilemap.ts`/`player_sim.ts`; no protocol or client change would be required.
+
+## Addendum to ADR-010 (2026-09-15, T-2.2) — `ws`/`@types/ws` also at the workspace root
+
+`scripts/sim_clients.ts` is a root-level file (not inside `server/`), and pnpm's strict (non-hoisting)
+linking means a bare `import "ws"` from it only resolves if `ws` is a dependency of the **root**
+`package.json` — it was not, so `pnpm sim` has never actually been runnable (verified: the same
+`ERR_MODULE_NOT_FOUND` reproduces on the pre-T-2.2 version of the file). `ws` (runtime) and `@types/ws`
+(dev) — both already ADR-010-approved for `server/`, same pinned versions — were added to the root
+`package.json` so the T-2.2 DoD (`pnpm sim -- --clients 4 --seconds 3` against a running server) is
+actually runnable. No new library was introduced.
