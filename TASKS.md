@@ -52,8 +52,8 @@
 
 ## Phase 2 — Multiplayer (engineering-only; started early because Phase 1 content is blocked on Q1)
 - [x] T-2.1 | protocol-designer | protocol.md v1: 16 messages (join/joined/leave/left/input/state/attack/damage/died/loot_pickup/loot/chat/chat_msg + ping/pong/error) + Zod + protocol.gd | test: check_protocol_sync green; tests/protocol.test.ts (65)
-- [ ] ready T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: sim_clients 4
-- [ ] ready T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: 200 ms simulated latency, no jitter
+- [ ] in-progress T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: sim_clients 4
+- [ ] in-progress T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: 200 ms simulated latency, no jitter
 - [ ] ready T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
 - [ ] ready T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
 - [ ] ready T-2.6 | server-dev | Group XP bonus | test: shared-rules test
