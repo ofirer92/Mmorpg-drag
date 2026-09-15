@@ -163,6 +163,7 @@ func test_dies_at_zero_hp_spawns_a_drop_and_the_player_can_pick_it_up() -> void:
 	var monster_data: Dictionary = RulesBalanceData.MONSTERS.monsters["side_effect_slime"]
 	var expected_item: String = RulesLoot.roll_loot(monster_data.loot_table, predicted_loot_roll)
 	assert_ne(expected_item, "", "sanity: the seed we picked actually drops something")
+	var item_def: Dictionary = RulesBalanceData.ITEMS["items"][expected_item]
 
 	server.request_attack("killer", monster.get_entity_id(), 1.0)
 	assert_eq(monster.ai_state, Monster.AiState.DEAD, "entity_died flips the monster to Dead immediately")
@@ -179,6 +180,14 @@ func test_dies_at_zero_hp_spawns_a_drop_and_the_player_can_pick_it_up() -> void:
 			drop = child
 	assert_not_null(drop, "a Drop pickup was spawned")
 	assert_eq(drop.item_id, expected_item, "drop matches RulesLoot.roll_loot for the seeded roll")
+	# T-1.7b: the drop node carries whatever the AUTHORITY rolled for it — the monster copies the
+	# affixes off entity_died, it never rolls them itself.
+	var rolled: Array[String] = drop.affixes
+	for affix_id: String in rolled:
+		assert_true(
+			RulesAffixes.affix_allows_rarity(affix_id, String(item_def.get("rarity", ""))),
+			"a rolled affix must be legal for the dropped item's rarity: %s" % affix_id
+		)
 
 	# NOTE: drop.gd frees itself (queue_free) the moment it's picked up, so by
 	# the time we get to assert, `drop` may already be a dangling reference —
@@ -187,11 +196,12 @@ func test_dies_at_zero_hp_spawns_a_drop_and_the_player_can_pick_it_up() -> void:
 	# Use a Dictionary (reference type) since GDScript lambdas capture plain
 	# local vars by VALUE — a bool/String written inside the lambda would not
 	# be visible out here.
-	var picked_up: Dictionary = {"called": false, "item": ""}
+	var picked_up: Dictionary = {"called": false, "item": "", "affixes": []}
 	drop.picked_up.connect(
-		func(item_id: String) -> void:
+		func(item_id: String, affixes: Array) -> void:
 			picked_up.called = true
 			picked_up.item = item_id
+			picked_up.affixes = affixes
 	)
 
 	var player_packed: PackedScene = load("res://scenes/player/player.tscn")
@@ -202,3 +212,6 @@ func test_dies_at_zero_hp_spawns_a_drop_and_the_player_can_pick_it_up() -> void:
 
 	assert_true(picked_up.called, "the player overlapping the drop emits picked_up")
 	assert_eq(picked_up.item, expected_item, "picked_up carries the correct item id")
+	# T-1.7b: the drop reports whatever the authority rolled for it — here nothing was set on the
+	# node, so an empty list, never a null or a missing argument.
+	assert_eq(picked_up.affixes, rolled, "picked_up carries the drop's own rolled affixes")

@@ -163,7 +163,7 @@ func _cell_center(cell: Vector2i) -> Vector2:
 ## server-driven and shows up as `alive: true` with a new `pos` in `state`"
 ## (docs/protocol.md § Sent while dead) — so this only does the single-player
 ## revive/reposition when _net_mode is false.
-func _on_entity_died(id: String, _xp: float, _drop_item_id: String) -> void:
+func _on_entity_died(id: String, _xp: float, _drop_item_id: String, _drop_affixes: Array) -> void:
 	if id != Player.ENTITY_ID:
 		return
 	await get_tree().create_timer(RESPAWN_DELAY_S).timeout
@@ -220,8 +220,10 @@ func _on_child_entered_tree(node: Node) -> void:
 		drop.picked_up.connect(_on_drop_picked_up)
 
 
-func _on_drop_picked_up(item_id: String) -> void:
-	var added: bool = inventory != null and inventory.add(item_id)
+## T-1.7b: a drop enters the bag as an INSTANCE carrying the affixes the
+## authority rolled for it, not as a bare item id.
+func _on_drop_picked_up(item_id: String, affixes: Array) -> void:
+	var added: bool = inventory != null and inventory.add_instance(item_id, affixes)
 	item_picked_up.emit(item_id, added)
 
 

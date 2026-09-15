@@ -60,6 +60,7 @@ var _attack_cooldown_remaining: float = 0.0
 var _hurt_elapsed: float = 0.0
 var _dead_elapsed: float = 0.0
 var _drop_item_id: String = ""
+var _drop_affixes: Array[String] = []
 var _drop_spawned: bool = false
 
 var _anim_name: StringName = &"idle"
@@ -240,6 +241,7 @@ func _finalize_death() -> void:
 	if _drop_item_id != "" and get_parent() != null:
 		var drop: Area2D = DropScene.instantiate()
 		drop.item_id = _drop_item_id
+		drop.affixes = _drop_affixes
 		get_parent().add_child(drop)
 		drop.global_position = global_position
 	queue_free()
@@ -256,12 +258,15 @@ func _on_damage_dealt(target_id: String, _amount: float, new_hp: float, _crit: b
 		play_animation(&"hurt")
 
 
-func _on_entity_died(id: String, _xp: float, drop_item_id: String) -> void:
+func _on_entity_died(id: String, _xp: float, drop_item_id: String, drop_affixes: Array) -> void:
 	if id != entity_id:
 		return
 	ai_state = AiState.DEAD
 	_dead_elapsed = 0.0
 	_drop_item_id = drop_item_id
+	_drop_affixes = []
+	for affix_id: Variant in drop_affixes:
+		_drop_affixes.append(String(affix_id))
 	play_animation(&"dead")
 
 

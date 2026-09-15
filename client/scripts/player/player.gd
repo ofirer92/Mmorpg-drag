@@ -241,7 +241,7 @@ func _on_damage_dealt(target_id: String, _amount: float, _new_hp: float, _crit: 
 		hurt()
 
 
-func _on_entity_died(id: String, _xp: float, _drop_item_id: String) -> void:
+func _on_entity_died(id: String, _xp: float, _drop_item_id: String, _drop_affixes: Array) -> void:
 	if id == ENTITY_ID:
 		die()
 

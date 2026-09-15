@@ -109,16 +109,38 @@ func buy(item_id: String) -> bool:
 ## Sells one unit of `item_id` from the bag at RulesEconomy.sell_price(value).
 ## Returns false (no state change) if the bag doesn't hold it (this also
 ## rejects equipped items, since they're never in the bag rows).
+##
+## T-1.7b: this sells the OLDEST matching row, which with item instances may not
+## be the one the player meant. The UI therefore goes through sell_at(); this
+## id-based entry point is kept for callers (and tests) that do not care which
+## roll goes.
 func sell(item_id: String) -> bool:
 	if _inventory == null:
 		return false
+	if _item_def(item_id).is_empty():
+		return false
+	for index: int in range(_inventory.slots().size()):
+		if String(_inventory.slots()[index]["item_id"]) == item_id:
+			return sell_at(index)
+	return false
+
+
+## T-1.7b: sells the bag instance at `index`, so the player sells the exact roll
+## they tapped. Returns false (no state change) for an out-of-range index or an
+## unknown item.
+func sell_at(index: int) -> bool:
+	if _inventory == null:
+		return false
+	var rows: Array[Dictionary] = _inventory.slots()
+	if index < 0 or index >= rows.size():
+		return false
+	var item_id: String = String(rows[index]["item_id"])
 	var def: Dictionary = _item_def(item_id)
 	if def.is_empty():
 		return false
-	if not _inventory.remove(item_id, 1):
+	if not _inventory.remove_at(index):
 		return false
-	var price: int = int(RulesEconomy.sell_price(float(def.get("value", 0))))
-	_inventory.add_money(price)
+	_inventory.add_money(int(RulesEconomy.sell_price(float(def.get("value", 0)))))
 	return true
 
 
@@ -189,7 +211,9 @@ func _build_stock_rows() -> void:
 
 
 func _build_bag_rows() -> void:
-	for slot: Dictionary in _inventory.slots():
+	var rows: Array[Dictionary] = _inventory.slots()
+	for index: int in range(rows.size()):
+		var slot: Dictionary = rows[index]
 		var item_id: String = String(slot["item_id"])
 		var count: int = int(slot["count"])
 		var def: Dictionary = _item_def(item_id)
@@ -198,13 +222,18 @@ func _build_bag_rows() -> void:
 		var price: int = int(RulesEconomy.sell_price(float(def.get("value", 0))))
 		var row: HBoxContainer = HBoxContainer.new()
 		var name_label: Label = Label.new()
-		name_label.text = "%s ×%d — %d" % [_item_name(item_id), count, price]
+		name_label.text = (
+			"%s ×%d — %d"
+			% [InventoryPanel._instance_name(item_id, slot.get("affixes", [])), count, price]
+		)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# Affixed names are long — trim rather than push the sell button off-screen.
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		row.add_child(name_label)
 		var sell_button: Button = Button.new()
 		sell_button.custom_minimum_size = Vector2(96, 40)
 		sell_button.text = I18n.t("ui.shop.sell")
-		sell_button.pressed.connect(_on_sell_pressed.bind(item_id))
+		sell_button.pressed.connect(_on_sell_pressed.bind(index))
 		row.add_child(sell_button)
 		list_box.add_child(row)
 
@@ -220,6 +249,6 @@ func _on_buy_pressed(item_id: String) -> void:
 	_refresh()
 
 
-func _on_sell_pressed(item_id: String) -> void:
-	sell(item_id)
+func _on_sell_pressed(index: int) -> void:
+	sell_at(index)
 	_refresh()

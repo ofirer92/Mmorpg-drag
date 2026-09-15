@@ -49,7 +49,7 @@
 - [x] T-1.5 | godot-dev | "טופס עלייה במינון 27-ב" bureaucratic upgrade UI (shell, wired to level-up) | test: client/tests/test_dosage_form.gd (11) + docs/screenshots/dosage_form_{390x844,approved_390x844,1920x1080}.png
 - [ ] blocked T-1.6 | art-pipeline + game-designer + godot-dev | 3 new zones (10 monsters, 1 boss) | test: sim + screenshot | reason: Q1
 - [x] T-1.7 | server-dev | Item affixes (10) — rules level: affixes.ts + YAML + parity fixture (client item instances = T-1.7b) | test: tests/affixes.test.ts (20) + client/tests/test_rules_affixes.gd (11)
-- [ ] ready T-1.7b | godot-dev | Inventory item instances with rolled affixes; drops carry affixes; comparison shows affix stats | test: GUT
+- [x] T-1.7b | godot-dev | Inventory item instances with rolled affixes; drops carry affixes; comparison shows affix stats | test: client/tests/test_inventory_affixes.gd (23) + docs/screenshots/inventory_390x844.png
 - [ ] blocked T-1.8 | game-designer | Final XP curve 1–30 | test: sim: level 30 ≈ 12 h | reason: needs T-1.6 monsters for a meaningful sim
 
 ## Phase 2 — Multiplayer (engineering-only; started early because Phase 1 content is blocked on Q1)
@@ -60,6 +60,7 @@
 - [x] T-2.5 | server-dev | Per-player loot (private drops, owner-only pickup within PICKUP_RADIUS_PX) | test: server/tests/loot.test.ts
 - [x] T-2.6 | server-dev | Group XP bonus (shared-rules party.ts, split among damagers) | test: tests/party.test.ts + client/tests/test_rules_party.gd
 - [ ] ready T-2.7 | godot-dev | Chat + quick emoji (mobile) | test: screenshot
+- [ ] ready T-2.10 | protocol-designer + server-dev | Drops carry rolled affixes over the wire (`state.drops` / `loot`), so net mode matches solo | test: protocol sync + server test + client parity | note: opened by T-1.7b — RemoteAuthority currently reports every drop as affixless
 - [ ] ready T-2.8 | server-dev + qa | Disconnect/reconnect mid-fight | test: GUT/vitest
 - [ ] blocked T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/ | reason: Q9 — whether offline solo play survives is a product decision, and the solo branch also carries gear/heal/save/shop that the server does not implement yet
 
@@ -67,6 +68,7 @@
 - [x] T-0.15 | godot-dev | Block attacks/skills while a dialogue, shop or inventory panel is open | test: test_game_session.gd::test_open_panel_blocks_attacks_but_not_movement
 
 ### QA reports
+- T-1.7b: PASS — 23 GUT tests. A bag row is now an item INSTANCE {item_id, count, affixes}: two rolls of the same sword stay separate rows, affixes survive equip/swap-back/unequip/save, and `compare_at()`/`equip_at()`/`sell_at()` address the exact instance the player tapped (the old id-based `remove()` would have sold their best roll). Affix numbers come only from RulesAffixes; a hand-edited save claiming unknown affixes gets none. LocalServer rolls affixes on its own seeded rng with a re-roll-on-duplicate loop and a MAX_AFFIX_REROLLS guard; 60 seeds × 3 items assert every roll is legal for the item's rarity, never duplicated, and within the documented slot range. Back-compat: pre-T-1.7b saves (bare item_id in `equipped`, no `affixes` key) still load. Two runtime defects the GUT suite could NOT see were caught by a screenshot run and then by a new guard: a ternary assigning an untyped Array to Array[String], and `String(7)` (no such constructor) on an untrusted save value. scripts/test_client.sh now fails on any runtime SCRIPT ERROR, closing that false-green hole.
 - T-1.5: PASS — 11 GUT tests. The form only ECHOES the authority's grants (the row test asserts the numbers against RulesProgression, never a literal), one form per level crossed with the rest queued, double-press cannot approve twice, and `resync()` re-baselines after a save load or a gear change (both of which move stats with NO level_up signal — without it the first form after a load would have shown a delta from level 1). Reviewed at 390×844 and 1920×1080; first render had the code-built grant rows in the theme's light font on cream paper (near-invisible) — fixed with an explicit ink colour. Known limits: the form is modal, so it blocks attacks until signed (T-0.15 rule, deliberate); in net mode RemoteAuthority reports attack/defense as 0 (not in `state` snapshots) so only the max_hp row appears there.
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
 - T-I.3/T-I.4/T-I.5: PASS — vitest 18 tests, GUT 6 tests/102 asserts, TS and generated GDScript agree on xp_for_level(1..30) and totals via packages/shared-rules/tests/fixtures/xp_curve.json.

@@ -365,7 +365,8 @@ func _on_died(data: Dictionary) -> void:
 		(_monster_views[raw_id] as Node).queue_free()
 		_monster_views.erase(raw_id)
 	_monsters.erase(raw_id)
-	entity_died.emit(_to_local_id(raw_id), xp, drop_item)
+	# T-1.7b: [] — the server does not send rolled affixes in `state` snapshots yet (T-2.10).
+	entity_died.emit(_to_local_id(raw_id), xp, drop_item, [] as Array[String])
 
 
 func _on_loot(data: Dictionary) -> void:

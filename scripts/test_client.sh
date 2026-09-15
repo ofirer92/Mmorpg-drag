@@ -20,6 +20,10 @@ status=${PIPESTATUS[0]}
 # GUT silently skips a test script that fails to parse — treat that as a failure (a skipped file is a
 # false green). Also require every tests/test_*.gd to appear in the run.
 if grep -qE 'Failed to load script|Parse Error' "$LOG"; then echo "❌ a test script failed to load (see above)"; rm -f "$LOG"; exit 1; fi
+# A runtime SCRIPT ERROR (a failed typed assignment, a nil call) does NOT fail a GUT assert — the
+# suite can report green while the game is erroring every frame. T-1.7b hit exactly that: a ternary
+# assigned an untyped Array to an Array[String] and only a screenshot run revealed it.
+if grep -q 'SCRIPT ERROR' "$LOG"; then echo "❌ a runtime SCRIPT ERROR occurred during the tests (see above)"; rm -f "$LOG"; exit 1; fi
 missing=0
 for f in tests/test_*.gd; do grep -q "res://$f" "$LOG" || { echo "❌ test script not run: $f"; missing=1; }; done
 rm -f "$LOG"

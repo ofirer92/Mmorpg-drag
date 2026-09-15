@@ -18,6 +18,10 @@ extends CombatAuthority
 ## every signal below is now declared on CombatAuthority and simply
 ## inherited here, with NO behaviour change from before T-2.4.
 
+## T-1.7b: upper bound on affix re-rolls per drop, so _roll_affixes() cannot spin when a rarity's
+## allowed pool is smaller than the slot count it asks for. Not a balance number — a loop guard.
+const MAX_AFFIX_REROLLS: int = 32
+
 ## Seeded so tests can predict rolls: create a second RandomNumberGenerator
 ## with the same seed and call randf() the same number of times.
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -276,8 +280,37 @@ func request_attack(attacker_id: String, target_id: String, power: float) -> voi
 		if defender.loot_table != "":
 			var loot_roll: float = rng.randf()
 			drop_item = RulesLoot.roll_loot(defender.loot_table, loot_roll)
-		entity_died.emit(target_id, defender.xp, drop_item)
+		entity_died.emit(target_id, defender.xp, drop_item, _roll_affixes(drop_item))
 		_grant_xp_to_killer(defender)
+
+
+## T-1.7b: rolls the affixes a freshly dropped `item_id` carries, on this
+## authority's own seeded rng — the client never decides this, the authority
+## does (in solo mode that IS this class; see ADR-013).
+##
+## RulesAffixes is pure and stateless per roll, so "no duplicate affix on one
+## item" is explicitly the caller's job (see affixes.gd's header): each slot is
+## re-rolled with a fresh value until it yields an id not already taken, and
+## gives up after MAX_AFFIX_REROLLS so a rarity whose pool is smaller than its
+## slot count can never spin forever.
+func _roll_affixes(item_id: String) -> Array[String]:
+	var out: Array[String] = []
+	if item_id == "":
+		return out
+	var def: Dictionary = RulesBalanceData.ITEMS.get("items", {}).get(item_id, {})
+	var rarity: String = String(def.get("rarity", ""))
+	if rarity == "":
+		return out
+	var wanted: int = int(RulesAffixes.affix_count(rarity, rng.randf()))
+	var pool: int = int(RulesAffixes.affix_pool_size(rarity))
+	wanted = min(wanted, pool)
+	var attempts: int = 0
+	while out.size() < wanted and attempts < MAX_AFFIX_REROLLS:
+		attempts += 1
+		var affix_id: String = RulesAffixes.roll_affix_id(rarity, rng.randf())
+		if affix_id != "" and not out.has(affix_id):
+			out.append(affix_id)
+	return out
 
 
 func _combat_view(e: Dictionary) -> Dictionary:

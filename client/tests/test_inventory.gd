@@ -12,7 +12,7 @@ const CONSUMABLE_1: String = "expired_bandage"
 
 
 func _equipped_in(inv: Inventory, slot: String) -> String:
-	return String(inv.equipped.get(slot, ""))
+	return inv.equipped_item_id(slot)
 
 
 func test_add_unknown_item_is_rejected() -> void:

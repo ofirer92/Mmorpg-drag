@@ -109,7 +109,7 @@ func test_equipped_items_are_not_sellable() -> void:
 	assert_eq(inv.count(WEAPON_1), 0, "equipped item should have left the bag")
 	assert_false(p.sell(WEAPON_1))
 	assert_eq(inv.money, 0)
-	assert_eq(String(inv.equipped.get("weapon", "")), WEAPON_1, "still equipped")
+	assert_eq(inv.equipped_item_id("weapon"), WEAPON_1, "still equipped")
 
 
 func test_equipped_items_do_not_appear_in_bag_rows_for_selling() -> void:

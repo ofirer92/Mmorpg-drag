@@ -109,7 +109,7 @@ func _on_damage_dealt(target_id: String, _amount: float, _new_hp: float, _crit: 
 	_refresh_from_stats(_server.get_stats(_entity_id))
 
 
-func _on_entity_died(id: String, _xp: float, _drop_item_id: String) -> void:
+func _on_entity_died(id: String, _xp: float, _drop_item_id: String, _drop_affixes: Array) -> void:
 	if id != _entity_id:
 		return
 	_update_hp(0.0, _server.get_max_hp(_entity_id))

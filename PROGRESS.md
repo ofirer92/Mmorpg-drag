@@ -1,5 +1,21 @@
 # PROGRESS
 
+## Session 9 — 2026-09-15 — Phase 1: Form 27-B + item instances
+**Done**
+- T-1.5 "טופס עלייה במינון 27-ב": every level-up now presents a bureaucratic approval form that REPORTS the grants the authority already applied (it never grants anything itself, so it works against LocalServer or RemoteAuthority unchanged). One form per level crossed, the rest queued; signing stamps it, blocks a double-approval and saves. Modal, so it joins the T-0.15 set that blocks attacks. The level-10 dosage branch is shown as pending the ethics committee rather than faked — it is blocked on Q1.
+- T-1.7b item instances: a bag row is now {item_id, count, affixes}. Two rolls of the same sword stay distinct, affixes survive equip/swap-back/unequip/save, and equip/compare/sell address the exact instance tapped — the old id-based remove() would have sold the player's best roll. LocalServer rolls affixes on its own seeded rng (re-roll on duplicate, bounded); 60 seeds assert every roll is legal for the rarity and within the documented slot range. Pre-T-1.7b saves still load.
+- Totals: vitest 165 + 42, GUT 283 across 34 scripts (was 249/32). check.sh GREEN in strict mode.
+
+**Next**
+- T-2.7 chat UI, T-2.8 disconnect/reconnect mid-fight, T-2.10 (new) drops carrying affixes over the wire.
+- Human: Q1–Q9, Phase 0 playtest, first PR.
+
+**Broken / not verified**
+- Another false-green class found and closed: GUT reports PASS even when a runtime SCRIPT ERROR fires every frame. Two real defects were hiding behind that — a ternary assigning an untyped Array to an Array[String], and `String(7)` (no such constructor) on an untrusted save value. Only a screenshot run surfaced the first. scripts/test_client.sh now fails on any SCRIPT ERROR, which immediately caught the second.
+- T-2.9 is now BLOCKED on Q9, not ready: "the server is always the authority, even solo" needs a product decision on whether offline play survives, and the solo branch still carries gear, heals, save/load and the shop economy that the server does not implement.
+- Net mode still shows every drop as affixless (T-2.10) and reports attack/defense as 0 in get_stats, so Form 27-B shows only the max_hp row there.
+- Still no auth (any non-empty token joins) — T-3.2. Placeholder content everywhere (Q3–Q8).
+
 ## Session 8 — 2026-09-15 — Phase 2: combat through the server
 **Done**
 - T-2.4 combat is server-authoritative end to end: the Zone does its own target selection (an attack is a flag on the per-tick input, never a target list), enforces unlock/cooldown/dead/self gates on the server clock, runs the crash streak, and emits attack/damage/died facts. Client-side, a CombatAuthority seam picks LocalServer (solo) or RemoteAuthority (net), so HUD, skill bar, monsters and drops are unchanged by which one is live.

@@ -93,7 +93,7 @@ func test_quit_and_reload_keeps_state() -> void:
 	var stats: Dictionary = server2.get_stats(Player.ENTITY_ID)
 	assert_eq(stats.level, 3.0, "level restored")
 	assert_eq(stats.hp, 7.0, "hp restored")
-	assert_eq(again.inventory.equipped.get("weapon", ""), _weapon_id, "gear restored")
+	assert_eq(again.inventory.equipped_item_id("weapon"), _weapon_id, "gear restored")
 	assert_eq(again.inventory.count(_consumable_id), 2, "bag restored")
 	var bonus: int = int(RulesBalanceData.ITEMS["items"][_weapon_id]["stats"]["attack"])
 	var stim: Dictionary = RulesBalanceData.CLASSES["archetypes"]["stim"]

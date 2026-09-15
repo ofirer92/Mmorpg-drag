@@ -26,7 +26,11 @@ extends Node
 ## Player.ENTITY_ID, never the server's own player_id) when the matching
 ## protocol fact arrives. See each subclass for exact emission rules.
 signal damage_dealt(target_id: String, amount: float, new_hp: float, crit: bool)
-signal entity_died(id: String, xp: float, drop_item_id: String)
+## T-1.7b: `drop_affixes` are the affix ids rolled for this drop (see
+## docs/balance/items.yaml). Always [] when nothing dropped, when the item has
+## no affixes, and in net mode — the server does not put affixes in `state`
+## snapshots yet (T-2.10).
+signal entity_died(id: String, xp: float, drop_item_id: String, drop_affixes: Array)
 signal crash_started(id: String, duration: float)
 signal crash_ended(id: String)
 signal xp_gained(id: String, amount: float, total_xp: float, level: float)

@@ -81,7 +81,7 @@ func test_equip_button_equips_the_selected_item() -> void:
 	(p.bag_list.get_child(0) as Button).pressed.emit()
 	assert_eq(p.action_button.text, I18n.t("ui.inventory.equip"))
 	p.action_button.pressed.emit()
-	assert_eq(String(inv.equipped.get("weapon", "")), WEAPON_1)
+	assert_eq(inv.equipped_item_id("weapon"), WEAPON_1)
 	assert_eq(inv.count(WEAPON_1), 0)
 
 
@@ -112,7 +112,7 @@ func test_equipped_row_shows_item_and_enables_unequip() -> void:
 	p.bind(inv)
 	assert_false(p.head_button.disabled)
 	p.head_button.pressed.emit()
-	assert_eq(String(inv.equipped.get("head", "")), "")
+	assert_eq(inv.equipped_item_id("head"), "")
 	assert_eq(inv.count(HEAD_1), 1)
 
 

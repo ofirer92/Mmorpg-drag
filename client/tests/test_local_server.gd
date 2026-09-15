@@ -83,9 +83,14 @@ func test_entity_died_emitted_once_with_xp_and_matching_drop() -> void:
 
 	assert_signal_emit_count(server, "entity_died", 1, "entity_died fires exactly once")
 	var expected_drop: String = RulesLoot.roll_loot(monster_data.loot_table, rolls[1])
-	assert_signal_emitted_with_parameters(
-		server, "entity_died", ["monster", float(monster_data.xp), expected_drop]
-	)
+	# T-1.7b: the 4th parameter is the affixes the authority rolled for this drop. Their exact ids
+	# depend on how many further rng.randf() calls _roll_affixes() makes, which is what
+	# test_drop_affixes_* below pins down — here we only assert the first three facts still hold.
+	var died_args: Array = get_signal_parameters(server, "entity_died")
+	assert_eq(died_args[0], "monster")
+	assert_eq(died_args[1], float(monster_data.xp))
+	assert_eq(died_args[2], expected_drop)
+	assert_true(died_args[3] is Array, "entity_died carries an affix list")
 	assert_false(server.is_alive("monster"))
 
 

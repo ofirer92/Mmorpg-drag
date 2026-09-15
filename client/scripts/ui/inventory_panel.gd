@@ -35,7 +35,10 @@ const EQUIP_SLOTS: Array[String] = ["weapon", "head", "body"]
 @onready var action_button: Button = $Root/Window/Margin/Content/ComparisonPanel/ActionButton
 
 var _inventory: Inventory = null
-var _selected_item_id: String = ""
+## T-1.7b: the bag is a list of INSTANCES, so selection is by row index into
+## Inventory.slots() — two rows can share an item_id and differ in affixes, and
+## selecting by id would compare (and equip) the wrong one. -1 = nothing selected.
+var _selected_index: int = -1
 var _equip_buttons: Dictionary = {}  # slot(String) -> Button
 
 
@@ -68,7 +71,7 @@ func bind(inventory: Inventory) -> void:
 	_inventory = inventory
 	_inventory.changed.connect(_on_inventory_changed)
 	_inventory.money_changed.connect(_on_money_changed)
-	_selected_item_id = ""
+	_selected_index = -1
 	_refresh()
 
 
@@ -100,8 +103,9 @@ func _refresh() -> void:
 	_render_equipped_row()
 	_render_money_label()
 	_rebuild_bag_list()
-	if _inventory != null and _selected_item_id != "" and _inventory.count(_selected_item_id) <= 0:
-		_selected_item_id = ""
+	# The selected row may have been consumed/equipped/sold out from under us.
+	if _inventory == null or _selected_index >= _inventory.slots().size():
+		_selected_index = -1
 	_update_comparison()
 
 
@@ -125,9 +129,18 @@ static func _item_slot(item_id: String) -> String:
 
 func _render_equipped_row() -> void:
 	for slot: String in EQUIP_SLOTS:
-		var item_id: String = String(_inventory.equipped.get(slot, "")) if _inventory != null else ""
+		var item_id: String = ""
+		var affixes: Array[String] = []
+		# Not a ternary: GDScript's `a if c else b` yields an untyped Array, which cannot be assigned
+		# to an Array[String] — it fails at RUNTIME, not at parse time (see docs/screenshots note in
+		# PROGRESS session 9).
+		if _inventory != null:
+			item_id = _inventory.equipped_item_id(slot)
+			affixes = _inventory.equipped_affixes_of(slot)
 		var btn: Button = _equip_buttons[slot]
-		var line: String = "%s: %s" % [I18n.t("ui.inventory.slot.%s" % slot), _item_name(item_id)]
+		var line: String = (
+			"%s: %s" % [I18n.t("ui.inventory.slot.%s" % slot), _instance_name(item_id, affixes)]
+		)
 		if not item_id.is_empty():
 			line += " (%s)" % I18n.t("ui.inventory.unequip")
 		btn.text = line
@@ -148,31 +161,53 @@ func _rebuild_bag_list() -> void:
 		return
 	var rows: Array[Dictionary] = _inventory.slots()
 	empty_label.visible = rows.is_empty()
-	for row: Dictionary in rows:
+	for index: int in range(rows.size()):
+		var row: Dictionary = rows[index]
 		var item_id: String = String(row["item_id"])
 		var count: int = int(row["count"])
+		var affixes: Array[String] = []
+		for entry: Variant in row.get("affixes", []):
+			affixes.append(String(entry))
 		var btn: Button = Button.new()
-		btn.text = "%s ×%d" % [_item_name(item_id), count]
+		btn.text = "%s ×%d" % [_instance_name(item_id, affixes), count]
 		btn.custom_minimum_size = Vector2(0, 40)
-		btn.pressed.connect(_on_bag_item_pressed.bind(item_id))
+		# An affixed name is much longer than a plain one; without this it overflows the window and
+		# gives the bag list a horizontal scrollbar (see docs/screenshots/inventory_390x844.png).
+		btn.clip_text = true
+		btn.pressed.connect(_on_bag_item_pressed.bind(index))
 		bag_list.add_child(btn)
 
 
-func _on_bag_item_pressed(item_id: String) -> void:
-	_selected_item_id = item_id
+## T-1.7b: an instance's display name — the item's own name plus its rolled
+## affix names, so two rows of the same item are told apart at a glance. Affix
+## names are i18n keys from docs/balance/items.yaml, never literals.
+static func _instance_name(item_id: String, affixes: Array) -> String:
+	var base: String = _item_name(item_id)
+	if affixes.is_empty():
+		return base
+	var parts: Array[String] = []
+	for entry: Variant in affixes:
+		var def: Dictionary = RulesBalanceData.ITEMS.get("affixes", {}).get(String(entry), {})
+		parts.append(I18n.t(String(def.get("name_key", String(entry)))))
+	return "%s [%s]" % [base, ", ".join(parts)]
+
+
+func _on_bag_item_pressed(index: int) -> void:
+	_selected_index = index
 	_update_comparison()
 
 
 func _update_comparison() -> void:
-	if _inventory == null or _selected_item_id.is_empty():
+	if _inventory == null or _selected_index < 0:
 		comparison_panel.visible = false
 		return
 	comparison_panel.visible = true
-	var delta: Dictionary = _inventory.compare(_selected_item_id)
+	# compare_at() (not compare()) so the delta includes THIS instance's rolled affixes.
+	var delta: Dictionary = _inventory.compare_at(_selected_index)
 	_set_delta_label(attack_delta_label, "ui.inventory.stat.attack", int(delta.get("attack", 0)))
 	_set_delta_label(defense_delta_label, "ui.inventory.stat.defense", int(delta.get("defense", 0)))
 	_set_delta_label(hp_delta_label, "ui.inventory.stat.hp", int(delta.get("hp", 0)))
-	var is_consumable: bool = _item_slot(_selected_item_id) == "consumable"
+	var is_consumable: bool = _item_slot(_selected_item_id()) == "consumable"
 	action_button.text = I18n.t("ui.inventory.use" if is_consumable else "ui.inventory.equip")
 
 
@@ -187,12 +222,23 @@ func _set_delta_label(label: Label, stat_key: String, value: int) -> void:
 		label.add_theme_color_override("font_color", COLOR_NEUTRAL)
 
 
+## The item id of the selected row, or "" when nothing (or a stale row) is selected.
+func _selected_item_id() -> String:
+	if _inventory == null or _selected_index < 0:
+		return ""
+	var rows: Array[Dictionary] = _inventory.slots()
+	if _selected_index >= rows.size():
+		return ""
+	return String(rows[_selected_index]["item_id"])
+
+
 func _on_action_pressed() -> void:
-	if _inventory == null or _selected_item_id.is_empty():
+	var item_id: String = _selected_item_id()
+	if item_id.is_empty():
 		return
-	var item_id: String = _selected_item_id
 	if _item_slot(item_id) == "consumable":
 		if _inventory.remove(item_id, 1):
 			used.emit(item_id)
 	else:
-		_inventory.equip(item_id)
+		# equip_at(), so the exact instance the player tapped is the one equipped.
+		_inventory.equip_at(_selected_index)
