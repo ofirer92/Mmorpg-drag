@@ -40,7 +40,12 @@ const CRASH_SHAKE_PX: float = 2.0
 @onready var hit_box_shape: CollisionShape2D = $HitBox/CollisionShape2D
 
 ## Set via set_local_server(); null means "no combat" (movement-only tests).
-var local_server: LocalServer = null
+## T-2.4: typed against CombatAuthority (client/scripts/combat/
+## combat_authority.gd), not the concrete LocalServer, so this script never
+## needs a net-mode branch — LocalServer resolves combat locally,
+## RemoteAuthority only ever relays what the server said (see that class's
+## header).
+var local_server: CombatAuthority = null
 ## Display-only flag driven by LocalServer's crash_started/crash_ended
 ## signals — never set directly from game logic.
 var crashed: bool = false
@@ -116,21 +121,44 @@ func _physics_process(delta: float) -> void:
 	_injected_skill_pressed = false
 
 
-## Attaches this player to a Phase 0 LocalServer (autoload-free — see
-## client/scripts/combat/local_server.gd) and registers its stim stats.
-## Never called → local_server stays null → no combat, ever (movement tests).
-func set_local_server(server: LocalServer) -> void:
+## Attaches this player to a CombatAuthority (LocalServer in single-player;
+## RemoteAuthority in net mode — see combat_authority.gd) and registers its
+## stim stats. Never called → local_server stays null → no combat, ever
+## (movement tests). T-2.4: safe to call a SECOND time (clinic_lobby.
+## enter_net_mode() rebinds the already-set-up player from LocalServer to
+## RemoteAuthority) — disconnects the old authority's signals first so the
+## player never reacts to two authorities at once.
+func set_local_server(server: CombatAuthority) -> void:
+	if local_server != null:
+		_disconnect_authority_signals(local_server)
 	local_server = server
 	## T-0.10: base/growth-derived stats now live in LocalServer.register()
 	## via the progression_archetype param — see local_server.gd — so this
 	## only needs to say "I'm a level-1 stim", never literal base numbers.
 	local_server.register(ENTITY_ID, {"level": 1.0}, "stim")
-	local_server.damage_dealt.connect(_on_damage_dealt)
-	local_server.entity_died.connect(_on_entity_died)
-	local_server.crash_started.connect(_on_crash_started)
-	local_server.crash_ended.connect(_on_crash_ended)
-	local_server.level_up.connect(_on_level_up)
+	_connect_authority_signals(local_server)
 	_update_selected_skill(local_server.get_level(ENTITY_ID))
+
+
+func _connect_authority_signals(server: CombatAuthority) -> void:
+	server.damage_dealt.connect(_on_damage_dealt)
+	server.entity_died.connect(_on_entity_died)
+	server.crash_started.connect(_on_crash_started)
+	server.crash_ended.connect(_on_crash_ended)
+	server.level_up.connect(_on_level_up)
+
+
+func _disconnect_authority_signals(server: CombatAuthority) -> void:
+	if server.damage_dealt.is_connected(_on_damage_dealt):
+		server.damage_dealt.disconnect(_on_damage_dealt)
+	if server.entity_died.is_connected(_on_entity_died):
+		server.entity_died.disconnect(_on_entity_died)
+	if server.crash_started.is_connected(_on_crash_started):
+		server.crash_started.disconnect(_on_crash_started)
+	if server.crash_ended.is_connected(_on_crash_ended):
+		server.crash_ended.disconnect(_on_crash_ended)
+	if server.level_up.is_connected(_on_level_up):
+		server.level_up.disconnect(_on_level_up)
 
 
 ## Called by AttackState.enter(). Grows the HitBox to the chosen skill's
@@ -197,7 +225,13 @@ func _resolve_pending_attack() -> void:
 		if body is Monster:
 			target_ids.append((body as Monster).get_entity_id())
 	_restore_hit_box()
-	if target_ids.is_empty() or local_server == null:
+	if local_server == null:
+		return
+	## T-2.4: LocalServer needs a real local target (it resolves damage
+	## itself); RemoteAuthority does not — the SERVER decides who got hit,
+	## so the intent must still go out even with an empty local hitbox query
+	## (see CombatAuthority.needs_local_targets()'s doc comment).
+	if target_ids.is_empty() and local_server.needs_local_targets():
 		return
 	local_server.request_skill(ENTITY_ID, target_ids, _pending_skill_id)
 
@@ -333,7 +367,11 @@ func _step_physics(delta: float) -> void:
 
 	_last_input_dir = input_dir
 	_last_input_jump_held = _jump_held
-	_last_input_attack = _injected_attack_pressed
+	## T-2.4: a skill_1 press is an attack too — docs/protocol.md's own worked
+	## example sends `attack: true` alongside `skill_id` (§ "Attack → damage
+	## → death"); without this, a skill press would wire out as
+	## `{attack: false, skill_id: "..."}`, which no server handler expects.
+	_last_input_attack = _injected_attack_pressed or _injected_skill_pressed
 	_last_input_skill_id = selected_skill_id if _injected_skill_pressed else ""
 
 	move_and_slide()

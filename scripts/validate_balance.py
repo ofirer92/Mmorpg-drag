@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-BAL, CONTENT = ROOT / "docs/balance", ROOT / "docs/content"
+BAL, CONTENT, MAPS_DIR = ROOT / "docs/balance", ROOT / "docs/content", ROOT / "docs/maps"
 ARCHETYPES = {"stim", "numb", "illusion", "zen", "rage"}
 ITEM_SLOTS = {"weapon", "head", "body", "consumable"}
 ITEM_RARITIES = {"common", "rare", "epic"}
@@ -162,7 +162,16 @@ def main() -> int:
         if "min" in r and "max" in r and r["min"] > r["max"]:
             err(f"affix_slots.{rid}: min must be ≤ max")
 
-    monsters = load("monsters.yaml").get("monsters", {})
+    monsters_doc = load("monsters.yaml")
+    require(monsters_doc, ["respawn_delay_s"], "monsters")
+    if not isinstance(monsters_doc.get("respawn_delay_s"), (int, float)) or isinstance(
+        monsters_doc.get("respawn_delay_s"), bool
+    ):
+        err("monsters.respawn_delay_s must be a number")
+    elif monsters_doc["respawn_delay_s"] <= 0:
+        err("monsters.respawn_delay_s must be > 0")
+
+    monsters = monsters_doc.get("monsters", {})
     for mid, m in monsters.items():
         require(
             m,
@@ -193,6 +202,15 @@ def main() -> int:
             if ai.get("leash_radius", 0) < ai.get("aggro_radius", 0):
                 err(f"monsters.{mid}: leash_radius must be ≥ aggro_radius")
 
+    party = load("party.yaml")
+    require(party, ["group_xp_bonus_pct_per_member", "max_bonus_members"], "party")
+    bonus_pct = party.get("group_xp_bonus_pct_per_member")
+    if not isinstance(bonus_pct, (int, float)) or isinstance(bonus_pct, bool) or bonus_pct < 0:
+        err("party.group_xp_bonus_pct_per_member must be a number >= 0")
+    max_members = party.get("max_bonus_members")
+    if not isinstance(max_members, (int, float)) or isinstance(max_members, bool) or max_members < 1:
+        err("party.max_bonus_members must be a number >= 1")
+
     npcs = load("npcs.yaml").get("npcs", {})
     for nid, n in npcs.items():
         require(n, ["name_key", "role", "lines", "stock", "map_cell"], f"npcs.{nid}")
@@ -207,13 +225,22 @@ def main() -> int:
         (xp, "xp_curve"),
         (classes, "classes"),
         (items_doc, "items"),
-        (monsters, "monsters"),
+        (monsters_doc, "monsters"),
         (npcs, "npcs"),
+        (party, "party"),
     ):
         no_negatives(doc, name)
     for k in keys_used:
         if k and k not in he:
             err(f"content key missing in he.yaml/en.yaml: {k}")
+
+    # T-2.4: docs/maps/*.yaml's monster_spawns must reference real monster kinds (server/src/world/zone.ts
+    # spawns whatever is listed here, silently skipping anything unknown — this catches a typo early).
+    for f in sorted(MAPS_DIR.glob("*.yaml")):
+        m = yaml.safe_load(f.read_text()) or {}
+        for spawn in m.get("monster_spawns", []) or []:
+            if spawn.get("id") not in monsters:
+                err(f"maps/{f.name}: monster_spawns references unknown monster {spawn.get('id')}")
 
     if errors:
         print("❌ validate_balance:")

@@ -129,3 +129,30 @@ func test_stats_panel_lists_level_hp_attack_defense_and_xp() -> void:
 	assert_true(hud.hp_detail.text.contains(str(int(stats.hp))))
 	assert_true(hud.attack_detail.text.contains(str(int(stats.attack))))
 	assert_true(hud.defense_detail.text.contains(str(int(stats.defense))))
+
+
+## Net mode binds the HUD before the first `state` arrives, so the authority reports max_hp 0. That
+## must read as "no data yet", never as a 0/0 death.
+func test_unknown_stats_show_a_placeholder_not_zero_hp() -> void:
+	var hud: Hud = _hud()
+	var server: LocalServer = add_child_autofree(LocalServer.new())
+	hud.bind(server, "never_registered")
+	await get_tree().process_frame
+	var text: String = hud.hp_label.text
+	assert_string_contains(text, I18n.t("ui.hud.no_data"), "placeholder shown")
+	assert_false(text.contains("0/0"), "never renders 0/0")
+
+
+## Net mode: the authoritative hp arrives in ordinary `state` snapshots, not as a damage event. The
+## HUD must leave the "awaiting data" placeholder as soon as stats land, without waiting to be hit.
+func test_stats_synced_replaces_the_placeholder() -> void:
+	var hud: Hud = _hud()
+	var server: LocalServer = add_child_autofree(LocalServer.new())
+	hud.bind(server, "late_arrival")
+	await get_tree().process_frame
+	assert_string_contains(hud.hp_label.text, I18n.t("ui.hud.no_data"), "placeholder before stats")
+	server.register("late_arrival", {"level": 1.0}, "stim")
+	server.stats_synced.emit("late_arrival")
+	await get_tree().process_frame
+	assert_false(hud.hp_label.text.contains(I18n.t("ui.hud.no_data")), "placeholder gone")
+	assert_eq(int(server.get_stats("late_arrival").max_hp), int(RulesBalanceData.CLASSES["archetypes"]["stim"]["base_hp"]))

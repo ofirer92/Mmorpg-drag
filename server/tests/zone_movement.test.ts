@@ -33,6 +33,7 @@ function flatMap(): MapDef {
     spawn: { x: 160, y: 32 * (rows - 1) - 16 - 1 },
     solid_chars: ["#", "W"],
     layout: rowsArr,
+    monster_spawns: [],
   };
 }
 

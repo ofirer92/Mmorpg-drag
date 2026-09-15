@@ -11,6 +11,8 @@ import {
   type InputMessage,
   type JoinMessage,
   type ChatMessage,
+  type LootPickupMessage,
+  type LootMessage,
   type ServerMessage,
 } from "@hamirpaa/shared-rules";
 import { healthPayload } from "../health.js";
@@ -24,6 +26,12 @@ export interface GameServerOptions {
   logLevel?: string;
   rate?: { perSec: number; burst: number };
   maxInvalid?: number;
+  /** T-2.4: seeds the zone's combat/loot rng (server/src/world/rng.ts). Tests pass a fixed seed for reproducible rolls; production defaults to Date.now(). */
+  seed?: number;
+  /** Test-only: use this pre-built Zone (e.g. a small custom map with a monster spawn right next to
+   * the player spawn, for deterministic combat tests) instead of the default clinic_lobby room.
+   * Never set by server/src/index.ts. */
+  zone?: Zone;
 }
 
 /** Per-message-type rate limits from docs/protocol.md's message table (column "Server validation"). Types not listed here (join is gated by "one join per socket" instead) fall back to the connection-wide bucket only. */
@@ -74,7 +82,7 @@ export class GameServer {
     this.log = pino({ level: opts.logLevel ?? "info" });
     this.rate = opts.rate ?? { perSec: 20, burst: 40 };
     this.maxInvalid = opts.maxInvalid ?? 3;
-    this.zone = createDefaultZone();
+    this.zone = opts.zone ?? createDefaultZone(opts.seed !== undefined ? { seed: opts.seed } : {});
     this.http = createServer((req, res) => this.onHttp(req, res));
     this.wss = new WebSocketServer({ server: this.http });
     this.wss.on("connection", (ws) => this.onConnection(ws));
@@ -107,9 +115,29 @@ export class GameServer {
    */
   step(dt: number): void {
     const start = performance.now();
-    this.zone.step(dt);
-    this.broadcastToZone({ t: "state", ...this.zone.snapshot() });
+    const events = this.zone.step(dt);
+    for (const ev of events) this.broadcastToZone(ev);
+    // T-2.5: drops are private, so `state` can't be one shared broadcast anymore — the players/
+    // monsters/last_seq parts ARE identical for everyone (built once here), only `drops` differs
+    // per socket (Zone.dropsFor, a cheap per-owner filter).
+    const shared = this.zone.sharedSnapshot();
+    for (const s of this.sessions) {
+      if (s.playerId !== null && this.zone.hasPlayer(s.playerId)) {
+        this.send(s, { t: "state", ...shared, drops: this.zone.dropsFor(s.playerId) });
+      }
+    }
     this.recordTickDuration(performance.now() - start);
+  }
+
+  /** Test-only passthrough to Zone.setPlayerLevelForTest — lets tests reach a level-gated skill
+   * (e.g. cooldown testing) without grinding real kills. Never called by production code paths. */
+  debugSetPlayerLevel(playerId: string, level: number): void {
+    this.zone.setPlayerLevelForTest(playerId, level);
+  }
+
+  /** Test-only passthrough to Zone.setPlayerHpForTest — lets a test put a player one hit from death. */
+  debugSetPlayerHp(playerId: string, hp: number): void {
+    this.zone.setPlayerHpForTest(playerId, hp);
   }
 
   private recordTickDuration(ms: number): void {
@@ -216,8 +244,7 @@ export class GameServer {
         this.handleChat(session, msg, now);
         return;
       case "loot_pickup":
-        // Loot isn't implemented until the economy tasks; a schema-valid-but-unhandled intent is
-        // dropped, never crashes (CLAUDE.md).
+        this.handleLootPickup(session, msg);
         return;
     }
   }
@@ -248,7 +275,7 @@ export class GameServer {
       zone_id: this.zone.id,
       tick: this.zone.tick,
       tick_ms: TICK_MS,
-      state: this.zone.snapshot(),
+      state: this.zone.snapshotFor(playerId),
     });
     // Peers are NOT sent a `joined` — the new player simply appears in their next `state`
     // (docs/protocol.md § Join handshake).
@@ -295,6 +322,35 @@ export class GameServer {
       text: msg.text,
       ts: now,
     });
+  }
+
+  /** docs/protocol.md § Loot: "must be joined and alive; drop exists, unclaimed, within
+   * PICKUP_RADIUS_PX of the player; inventory has room" — dead → `error.not_alive`; every other
+   * failure (not joined, unknown drop, someone else's drop, out of range) → `loot {added:false}` to
+   * the requester only, never a broadcast; success → `loot {added:true}` broadcast to the zone. */
+  private handleLootPickup(session: Session, msg: LootPickupMessage): void {
+    if (session.playerId === null || !this.zone.hasPlayer(session.playerId)) {
+      this.rejectInvalid(session, Date.now()); // low-frequency intent in the wrong state → an error, not a silent drop
+      return;
+    }
+    if (!this.zone.isAlive(session.playerId)) {
+      this.send(session, { t: "error", code: "not_alive", msg_key: "error.not_alive" });
+      return;
+    }
+    const result = this.zone.pickup(session.playerId, msg.drop_id);
+    const lootMsg: LootMessage = {
+      t: "loot",
+      player_id: session.playerId,
+      drop_id: msg.drop_id,
+      item_id: result.itemId,
+      money: result.money,
+      added: result.added,
+    };
+    if (result.added) {
+      this.broadcastToZone(lootMsg);
+    } else {
+      this.send(session, lootMsg);
+    }
   }
 
   /** Every session whose player is currently in the zone — `state`/`left`/`chat_msg` all go here. */

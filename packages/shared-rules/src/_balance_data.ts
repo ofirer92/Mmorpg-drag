@@ -560,8 +560,43 @@ export const ITEMS: ItemsData = {
   }
 };
 
-export const MONSTERS = {
+export interface MonsterAiParams {
+  patrol_speed: number;
+  chase_speed: number;
+  aggro_radius: number;
+  attack_range: number;
+  leash_radius: number;
+  patrol_distance: number;
+}
+
+export interface MonsterMoney {
+  min: number;
+  max: number;
+}
+
+export interface MonsterDef {
+  money: MonsterMoney;
+  name_key: string;
+  level: number;
+  hp: number;
+  attack: number;
+  defense: number;
+  attack_speed: number;
+  xp: number;
+  loot_table: string;
+  ai: string;
+  ai_params: MonsterAiParams;
+}
+
+export interface MonstersData {
+  version: number;
+  respawn_delay_s: number;
+  monsters: Record<string, MonsterDef>;
+}
+
+export const MONSTERS: MonstersData = {
   "version": 1,
+  "respawn_delay_s": 10,
   "monsters": {
     "side_effect_slime": {
       "money": {
@@ -633,7 +668,7 @@ export const MONSTERS = {
       }
     }
   }
-} as const;
+};
 
 export const NPCS = {
   "version": 1,
@@ -662,6 +697,12 @@ export const NPCS = {
   }
 } as const;
 
+export const PARTY = {
+  "version": 1,
+  "group_xp_bonus_pct_per_member": 10,
+  "max_bonus_members": 4
+} as const;
+
 export const XP_CURVE = {
   "version": 1,
   "max_level": 30,
@@ -675,6 +716,11 @@ export interface MapSpawn {
   y: number;
 }
 
+export interface MonsterSpawn {
+  id: string;
+  cell: [number, number];
+}
+
 export interface MapDef {
   id: string;
   tile_size: number;
@@ -683,6 +729,7 @@ export interface MapDef {
   spawn: MapSpawn;
   solid_chars: string[];
   layout: string[];
+  monster_spawns: MonsterSpawn[];
 }
 
 export const MAPS: Record<string, MapDef> = {
@@ -699,6 +746,50 @@ export const MAPS: Record<string, MapDef> = {
       "#",
       "=",
       "W"
+    ],
+    "monster_spawns": [
+      {
+        "id": "side_effect_slime",
+        "cell": [
+          10,
+          18
+        ]
+      },
+      {
+        "id": "side_effect_slime",
+        "cell": [
+          30,
+          18
+        ]
+      },
+      {
+        "id": "side_effect_slime",
+        "cell": [
+          50,
+          18
+        ]
+      },
+      {
+        "id": "lost_referral",
+        "cell": [
+          20,
+          10
+        ]
+      },
+      {
+        "id": "lost_referral",
+        "cell": [
+          15,
+          12
+        ]
+      },
+      {
+        "id": "form_27b",
+        "cell": [
+          55,
+          18
+        ]
+      }
     ],
     "layout": [
       "W..........................................................W",

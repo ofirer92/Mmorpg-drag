@@ -1,14 +1,20 @@
 # PROGRESS
 
-## Session 8 — 2026-09-15 — Phase 2: combat through the server (in progress)
+## Session 8 — 2026-09-15 — Phase 2: combat through the server
 **Done**
-- Session-start check green (vitest 165 + 36, GUT 232 / 29 scripts). T-2.4/T-2.5/T-2.6 delegated on disjoint trees: server-dev (server-side combat, monsters in the zone, private per-player drops, group XP in a new shared-rules party module) and godot-dev (CombatAuthority seam: LocalServer for solo, RemoteAuthority for net mode, server-driven monsters and drops).
+- T-2.4 combat is server-authoritative end to end: the Zone does its own target selection (an attack is a flag on the per-tick input, never a target list), enforces unlock/cooldown/dead/self gates on the server clock, runs the crash streak, and emits attack/damage/died facts. Client-side, a CombatAuthority seam picks LocalServer (solo) or RemoteAuthority (net), so HUD, skill bar, monsters and drops are unchanged by which one is live.
+- T-2.5 private per-player drops (own snapshot only, owner-only pickup in PICKUP_RADIUS_PX) and T-2.6 group XP shared among damagers via a new shared-rules party module (placeholder curve, Q8). ADR-017.
+- Verified against the real server, not just fakes: headless client killed monster m_1 (60 hp → 0, 6 server-confirmed hits); 4-client sim 0 violations; net-mode screenshots at both resolutions show 6 server-driven monsters and a live HP bar.
+- Totals: vitest 165 + 42, GUT 249 (32 scripts). check.sh GREEN in strict mode.
 
 **Next**
-- Integrate both halves against the real server (headless net smoke + 4-client sim), then T-2.8 reconnect and T-2.9 removing single-player combat.
+- T-2.7 chat UI, T-2.8 disconnect/reconnect mid-fight, T-2.9 delete the single-player combat branch (the CombatAuthority seam is the hook).
+- Human: Q1–Q8, Phase 0 playtest, first PR.
 
 **Broken / not verified**
-- Nothing new yet; agents still running.
+- Both sub-agents were terminated mid-task by a rate limit; their remainder (ADR-017, two parity tests, a wrong test assumption, debug scratch) was finished by the lead. Nothing was left half-applied, but the work was not agent-reviewed.
+- Tooling trap found and fixed: screenshot.sh used to print "saved" when only a STALE file existed, and its frame budget was shorter than a net scene needs — every net-mode screenshot before this session was silently the previous image. It now deletes the target first and fails loudly.
+- Still no auth (any non-empty token joins) — T-3.2. Placeholder content everywhere (Q3–Q8).
 
 ## Session 7 — 2026-09-15 — Phase 2: server room + client net layer
 **Done**

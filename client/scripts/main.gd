@@ -9,11 +9,13 @@ extends Node2D
 ## exactly today's LocalServer-driven behaviour, byte-for-byte unchanged
 ## (see client/tests/test_game_session.gd). `net_url` non-empty = a
 ## NetSession (client/scripts/net/net_session.gd) connects and joins a real
-## server for movement sync/reconciliation/remote players. LocalServer keeps
-## running EITHER way in phase 2 — it still resolves this client's own
-## combat locally even while networked, a deliberate hybrid documented in
-## ADR-013: T-2.4 is what moves combat resolution to the server and turns
-## this into a true multiplayer client; T-2.9 removes LocalServer entirely.
+## server for movement sync/reconciliation/remote players, AND
+## (client/scripts/combat/remote_authority.gd's) RemoteAuthority replaces
+## LocalServer as the CombatAuthority (client/scripts/combat/
+## combat_authority.gd) handed to Hud/SkillBar/Player/clinic_lobby — T-2.4:
+## combat resolution moves to the server; LocalServer is no longer reached at
+## all once net mode is entered (see clinic_lobby.enter_net_mode()).
+## T-2.9 removes LocalServer/RemoteAuthority's single-player branch entirely.
 
 const ARCHETYPE: String = "stim"
 const AUTOSAVE_INTERVAL_S: float = 30.0
@@ -33,6 +35,14 @@ const DEV_CHARACTER_ID: String = "char_dev"
 var inventory: Inventory = Inventory.new()
 ## Set only when networking is active (see _start_networking()).
 var net_client: NetClient = null
+## Set only when networking is active — the CombatAuthority Hud/SkillBar/
+## Player/clinic_lobby are bound to in net mode (see _ready()).
+var remote_authority: RemoteAuthority = null
+## Test/demo hook only (client/scripts/test/net_combat_demo.gd,
+## client/tests/test_*): when set before _ready() runs, _start_networking()
+## injects this into the NetClient instead of letting it lazily create a
+## real WebSocket transport. Never set in a real boot.
+var test_transport: NetTransport = null
 
 @onready var clinic_lobby: ClinicLobby = $ClinicLobby
 @onready var hud: Hud = $Hud
@@ -49,15 +59,23 @@ func _ready() -> void:
 	if save_path == "":
 		save_path = SaveGame.default_path()
 	($Label as Label).text = I18n.t("ui.title")
-	var server: LocalServer = clinic_lobby.local_server
-	hud.bind(server, Player.ENTITY_ID)
-	skill_bar.bind(server, clinic_lobby.player)
+
+	var resolved_url: String = _resolve_net_url()
+	var authority: CombatAuthority = clinic_lobby.local_server
+	if resolved_url != "":
+		remote_authority = RemoteAuthority.new()
+		add_child(remote_authority)
+		clinic_lobby.enter_net_mode(remote_authority)
+		authority = remote_authority
+
+	hud.bind(authority, Player.ENTITY_ID)
+	skill_bar.bind(authority, clinic_lobby.player)
 	clinic_lobby.inventory = inventory
 	inventory_panel.bind(inventory)
 	inventory.equipped_changed.connect(_on_equipped_changed)
 	inventory_panel.used.connect(_on_item_used)
-	server.level_up.connect(_on_level_up)
-	server.money_dropped.connect(_on_money_dropped)
+	authority.level_up.connect(_on_level_up)
+	authority.money_dropped.connect(_on_money_dropped)
 	clinic_lobby.npc_interact_requested.connect(_on_npc_interact_requested)
 	dialogue_box.shop_requested.connect(_on_dialogue_shop_requested)
 	shop_panel.closed.connect(_on_shop_panel_closed)
@@ -67,10 +85,9 @@ func _ready() -> void:
 	if load_on_ready and SaveGame.exists(save_path):
 		apply_save(SaveGame.load(save_path))
 	net_status_label.visible = false
-	var resolved_url: String = _resolve_net_url()
 	if resolved_url != "":
 		_start_networking(resolved_url)
-	print("Hamirpaa boot ok — level %d" % int(server.get_level(Player.ENTITY_ID)))
+	print("Hamirpaa boot ok — level %d" % int(authority.get_level(Player.ENTITY_ID)))
 
 
 ## `net_url` export wins; else HAMIRPAA_SERVER_URL env var; else a
@@ -92,6 +109,10 @@ func _start_networking(url: String) -> void:
 	net_status_label.text = I18n.t("ui.net.connecting")
 	net_client = NetClient.new()
 	add_child(net_client)
+	if test_transport != null:
+		net_client.set_transport(test_transport)
+	remote_authority.setup(net_client, clinic_lobby, inventory)
+	remote_authority.loot_added.connect(_on_net_loot_added)
 	net_client.disconnected.connect(_on_net_disconnected)
 	net_client.error.connect(_on_net_error)
 	net_session.ready_to_play.connect(_on_net_ready_to_play)
@@ -99,8 +120,20 @@ func _start_networking(url: String) -> void:
 	net_client.connect_to(url)
 
 
-func _on_net_ready_to_play(_player_id: String) -> void:
+func _on_net_ready_to_play(player_id: String) -> void:
 	net_status_label.visible = false
+	remote_authority.local_player_id = player_id
+
+
+## T-2.4: the only place a `loot {added: true}` fact reaches the real
+## Inventory — mirrors clinic_lobby._on_drop_picked_up's single-player path
+## (Drop.picked_up -> inventory.add()) but only after the server confirmed it
+## (CLAUDE.md: the client never decides what it picked up).
+func _on_net_loot_added(item_id: String, money: int) -> void:
+	if item_id != "":
+		inventory.add(item_id)
+	if money > 0:
+		inventory.add_money(money)
 
 
 func _on_net_disconnected(_code: int, _reason: String) -> void:

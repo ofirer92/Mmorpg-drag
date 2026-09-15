@@ -55,9 +55,9 @@
 - [x] T-2.1 | protocol-designer | protocol.md v1: 16 messages (join/joined/leave/left/input/state/attack/damage/died/loot_pickup/loot/chat/chat_msg + ping/pong/error) + Zod + protocol.gd | test: check_protocol_sync green; tests/protocol.test.ts (65)
 - [x] T-2.2 | server-dev | Server: one room, 4 players, 20 Hz tick, authoritative movement | test: `pnpm sim -- --clients 4 --seconds 3` → 0 violations; server/tests/{zone_movement,room}.test.ts (29)
 - [x] T-2.3 | godot-dev | Client net layer, prediction + reconciliation | test: client/tests/test_net_session.gd (200 ms RTT, max backward delta < 4 px) + net_smoke scene vs the real server (exit 0)
-- [ ] in-progress T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: 2 clients see the same hp
-- [ ] in-progress T-2.5 | server-dev | Per-player loot | test: 2 players, 2 different drops
-- [ ] in-progress T-2.6 | server-dev | Group XP bonus | test: shared-rules test
+- [x] T-2.4 | server-dev + godot-dev | Combat through the server: attack intent → damage fact | test: server/tests/combat.test.ts (6, incl. 2 clients agreeing on monster hp) + net_smoke vs the real server (killed m_1: 60 hp → 0 in 6 server-confirmed hits)
+- [x] T-2.5 | server-dev | Per-player loot (private drops, owner-only pickup within PICKUP_RADIUS_PX) | test: server/tests/loot.test.ts
+- [x] T-2.6 | server-dev | Group XP bonus (shared-rules party.ts, split among damagers) | test: tests/party.test.ts + client/tests/test_rules_party.gd
 - [ ] ready T-2.7 | godot-dev | Chat + quick emoji (mobile) | test: screenshot
 - [ ] ready T-2.8 | server-dev + qa | Disconnect/reconnect mid-fight | test: GUT/vitest
 - [ ] ready T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/
@@ -82,3 +82,6 @@
 - T-0.15: PASS — note for GUT tests: wait_frames() advances physics but not idle _process; await get_tree().process_frame for _process-driven logic.
 - T-2.2: PASS — live sim 4 clients × 3 s: joined 4, 0 violations, p95 RTT 1 ms, tick p95 0.5 ms. Map layout is now shared data (docs/maps/clinic_lobby.yaml, GUT parity test). loot_pickup is a documented no-op until T-2.5.
 - T-2.3: PASS — headless net_smoke scene against the real server: joined, 40 states, last_seq 39, exit 0. QA fix: the client carried its own PROTOCOL_VERSION copy — now generated into protocol.gd and cross-checked by check_protocol_sync. QA finding: GUT silently skips a test script that fails to parse and the run still reported green; test_client.sh now fails on any unloadable script and on any tests/test_*.gd missing from the run (verified with a deliberately broken file).
+- T-2.4/T-2.5/T-2.6: PASS — proven against the REAL server, not only fakes: a headless Godot client joined, walked to monster m_1 and killed it (60 hp → 0) via 6 server-confirmed `damage` facts; 4-client sim 0 violations, tick p95 0.4 ms; net-mode screenshots show all 6 server-driven monsters and a live HP bar.
+- Both delegated agents were killed mid-task by a rate limit; the lead finished their remainder: the crash test's timing assumption (it expected a monster swing inside a 200 ms combo, but the monster swings every 1.25 s), ADR-017, the party and monster-spawn parity tests, and the leftover debug scratch directory.
+- QA findings fixed this session: (1) scripts/screenshot.sh reported "saved" when a STALE file existed — it now deletes the target first and fails loudly, and its Godot `--quit-after` scales with the requested delay (a net scene needs hundreds of frames to connect, so every net screenshot was silently the old image); (2) the HUD rendered an unknown player as "0/0", which reads as dead — now an "awaiting approval" placeholder; (3) in net mode the HUD never showed HP until something damaged you, because authoritative stats arrive in ordinary snapshots — new `stats_synced` signal.

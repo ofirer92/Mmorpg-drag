@@ -126,6 +126,15 @@ def gen_maps_ts(v: dict) -> str:
         "  y: number;",
         "}",
         "",
+        # T-2.4: monster_spawns lets world/zone.ts populate a zone's starting monsters without a
+        # literal — `id` is a balance.MONSTERS key, `cell` is a [col, row] grid coordinate (same
+        # convention as client/scripts/maps/clinic_lobby.gd's MONSTER_SPAWNS). A fixed-length tuple
+        # (not number[]) so `spawn.cell[0]`/`[1]` don't need a noUncheckedIndexedAccess guard.
+        "export interface MonsterSpawn {",
+        "  id: string;",
+        "  cell: [number, number];",
+        "}",
+        "",
         "export interface MapDef {",
         "  id: string;",
         "  tile_size: number;",
@@ -134,9 +143,56 @@ def gen_maps_ts(v: dict) -> str:
         "  spawn: MapSpawn;",
         "  solid_chars: string[];",
         "  layout: string[];",
+        "  monster_spawns: MonsterSpawn[];",
         "}",
         "",
         f"export const MAPS: Record<string, MapDef> = {json.dumps(v, indent=2, ensure_ascii=False)};",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+# MONSTERS is looked up by a dynamic monster kind (server/src/world/zone.ts spawns whatever
+# docs/maps/*.yaml's monster_spawns lists), so — same reasoning as ITEMS/MAPS (ADR-012) — `monsters`
+# gets an explicit Record<string, MonsterDef> type instead of the default `as const` literal-keyed
+# object every other single-file balance const uses.
+def gen_monsters_ts(v: dict) -> str:
+    lines = [
+        "export interface MonsterAiParams {",
+        "  patrol_speed: number;",
+        "  chase_speed: number;",
+        "  aggro_radius: number;",
+        "  attack_range: number;",
+        "  leash_radius: number;",
+        "  patrol_distance: number;",
+        "}",
+        "",
+        "export interface MonsterMoney {",
+        "  min: number;",
+        "  max: number;",
+        "}",
+        "",
+        "export interface MonsterDef {",
+        "  money: MonsterMoney;",
+        "  name_key: string;",
+        "  level: number;",
+        "  hp: number;",
+        "  attack: number;",
+        "  defense: number;",
+        "  attack_speed: number;",
+        "  xp: number;",
+        "  loot_table: string;",
+        "  ai: string;",
+        "  ai_params: MonsterAiParams;",
+        "}",
+        "",
+        "export interface MonstersData {",
+        "  version: number;",
+        "  respawn_delay_s: number;",
+        "  monsters: Record<string, MonsterDef>;",
+        "}",
+        "",
+        f"export const MONSTERS: MonstersData = {json.dumps(v, indent=2, ensure_ascii=False)};",
         "",
     ]
     return "\n".join(lines)
@@ -150,6 +206,9 @@ def gen_balance_ts(data: dict) -> str:
             continue
         if k == "MAPS":
             lines.append(gen_maps_ts(v))
+            continue
+        if k == "MONSTERS":
+            lines.append(gen_monsters_ts(v))
             continue
         lines.append(f"export const {k} = {json.dumps(v, indent=2, ensure_ascii=False)} as const;")
         lines.append("")

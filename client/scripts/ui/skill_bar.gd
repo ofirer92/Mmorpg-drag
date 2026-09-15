@@ -20,7 +20,9 @@ var status_labels: Array[Label] = []
 ## Skill ids in archetypes.stim.skills order — buttons[i]/status_labels[i] is skill_ids[i].
 var skill_ids: Array[String] = []
 
-var _server: LocalServer = null
+## T-2.4: typed against CombatAuthority (LocalServer in single-player,
+## RemoteAuthority in net mode) — see client/scripts/combat/combat_authority.gd.
+var _server: CombatAuthority = null
 var _player: Player = null
 var _entity_id: String = ""
 var _skills: Array = []
@@ -48,7 +50,7 @@ func _ready() -> void:
 
 
 ## Wires this bar to `server`'s facts for `player` and does one initial refresh.
-func bind(server: LocalServer, player: Player) -> void:
+func bind(server: CombatAuthority, player: Player) -> void:
 	_server = server
 	_player = player
 	_entity_id = Player.ENTITY_ID

@@ -11,6 +11,15 @@ spawn:
   x: 80
   y: 590
 solid_chars: ["#", "=", "W"]
+# T-2.4: copied EXACTLY from client/scripts/maps/clinic_lobby.gd's MONSTER_SPAWNS — cell is [col,
+# row] in the same grid as `layout` (see client/tests/test_rules_maps.gd for the parity check).
+monster_spawns:
+  - {id: side_effect_slime, cell: [10, 18]}
+  - {id: side_effect_slime, cell: [30, 18]}
+  - {id: side_effect_slime, cell: [50, 18]}
+  - {id: lost_referral, cell: [20, 10]}
+  - {id: lost_referral, cell: [15, 12]}
+  - {id: form_27b, cell: [55, 18]}
 layout:
   - "W..........................................................W"
   - "W..........................................................W"

@@ -105,6 +105,11 @@ var npcs: Array[Npc] = []
 ## deciding what a given npc_id's dialogue/shop actually says.
 signal npc_interact_requested(npc_id: String)
 
+## T-2.4: true once enter_net_mode() has run — guards the single-player-only
+## parts of _on_entity_died() below (server-driven respawn has no client
+## intent in protocol v1; see that function's doc comment).
+var _net_mode: bool = false
+
 
 func _ready() -> void:
 	child_entered_tree.connect(_on_child_entered_tree)
@@ -154,13 +159,43 @@ func _cell_center(cell: Vector2i) -> Vector2:
 ## after a flat delay — see MONSTER_SPAWNS/RESPAWN_DELAY_S doc comments and
 ## LocalServer.revive(). Monster deaths are handled entirely inside
 ## monster.gd (drop + queue_free), so this only reacts to the PLAYER dying.
+## T-2.4: in net mode there is no respawn intent in protocol v1 — "respawn is
+## server-driven and shows up as `alive: true` with a new `pos` in `state`"
+## (docs/protocol.md § Sent while dead) — so this only does the single-player
+## revive/reposition when _net_mode is false.
 func _on_entity_died(id: String, _xp: float, _drop_item_id: String) -> void:
 	if id != Player.ENTITY_ID:
 		return
 	await get_tree().create_timer(RESPAWN_DELAY_S).timeout
+	if _net_mode:
+		return
 	local_server.revive(Player.ENTITY_ID)
 	player.global_position = spawn.global_position
 	player.respawn()
+
+
+## T-2.4: called once by main.gd right after resolving net mode (before
+## NetSession/NetClient exist yet — RemoteAuthority.setup() wires those
+## separately). Removes every locally-spawned Monster (deliverable: "in NET
+## MODE ... must NOT spawn local monsters or resolve combat locally") and
+## rebinds the player from LocalServer to `remote` so its attack/skill
+## intents and damage/death reactions go through the server instead — see
+## Player.set_local_server()'s doc comment for why calling it twice is safe.
+func enter_net_mode(remote: CombatAuthority) -> void:
+	_net_mode = true
+	for child: Node in get_children().duplicate():
+		if child is Monster:
+			# Immediate free (not queue_free): callers rely on the local
+			# monsters being gone by the time this call returns — e.g. a
+			# RemoteMonster view for the very same map cell may be spawned
+			# moments later, and a deferred free could still be showing the
+			# stale local one for a frame.
+			remove_child(child)
+			child.free()
+	if local_server.entity_died.is_connected(_on_entity_died):
+		local_server.entity_died.disconnect(_on_entity_died)
+	remote.entity_died.connect(_on_entity_died)
+	player.set_local_server(remote)
 
 
 func _build_tiles() -> void:

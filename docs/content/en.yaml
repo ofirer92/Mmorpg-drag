@@ -88,3 +88,4 @@ error.not_alive: The deceased may not file requests. Please wait for administrat
 ui.net.connecting: Connecting to server...
 ui.net.disconnected: Disconnected from server.
 ui.net.error: Server communication error.
+ui.hud.no_data: awaiting approval

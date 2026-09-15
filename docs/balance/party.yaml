@@ -1,0 +1,14 @@
+# T-2.6: group XP bonus. ⚠️ ENGINEERING PLACEHOLDER (Q8) — the whole curve (whether/how much a party
+# should be rewarded for fighting together instead of soloing) is a game-design call that needs the
+# real GDD; this only fixes a principled SHAPE so the server has something to run:
+#
+#   group_xp_bonus_pct(member_count) = (min(member_count, max_bonus_members) - 1) * group_xp_bonus_pct_per_member
+#   group_xp_share(total_xp, member_count) = max(1, floor(total_xp * (1 + bonus_pct/100) / member_count))
+#
+# i.e. every extra player who damaged the kill (beyond the first) adds +group_xp_bonus_pct_per_member
+# to the TOTAL xp pool for that kill, capped once max_bonus_members participants are reached, then the
+# (bonused) pool is split evenly and floored — never below 1 per participant. A solo kill
+# (member_count == 1) gets no bonus and the full xp. See packages/shared-rules/src/party.ts.
+version: 1
+group_xp_bonus_pct_per_member: 10
+max_bonus_members: 4

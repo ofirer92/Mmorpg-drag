@@ -56,3 +56,29 @@ func test_spawn_matches_the_scene_marker() -> void:
 	var m: Dictionary = RulesBalanceData.MAPS[MAP_ID]
 	assert_eq(float(m.spawn.x), spawn_marker.position.x)
 	assert_eq(float(m.spawn.y), spawn_marker.position.y)
+
+
+## T-2.4: the server spawns monsters from docs/maps/clinic_lobby.yaml's monster_spawns, while the
+## client (single-player mode) still spawns from ClinicLobby.MONSTER_SPAWNS. Both must describe the
+## same encounter, or solo and net play are different games.
+func test_monster_spawns_match_the_client_table() -> void:
+	var m: Dictionary = RulesBalanceData.MAPS[MAP_ID]
+	assert_true(m.has("monster_spawns"), "generated map carries monster_spawns")
+	var generated: Array = m["monster_spawns"]
+	assert_eq(generated.size(), ClinicLobby.MONSTER_SPAWNS.size(), "same number of monsters")
+	for i: int in range(ClinicLobby.MONSTER_SPAWNS.size()):
+		var want: Dictionary = ClinicLobby.MONSTER_SPAWNS[i]
+		var got: Dictionary = generated[i]
+		var want_cell: Vector2i = want["cell"]
+		var got_cell: Array = got["cell"]
+		assert_eq(String(got["id"]), String(want["id"]), "spawn %d kind" % i)
+		assert_eq(int(got_cell[0]), want_cell.x, "spawn %d cell x" % i)
+		assert_eq(int(got_cell[1]), want_cell.y, "spawn %d cell y" % i)
+
+
+func test_every_monster_spawn_kind_exists_in_balance_data() -> void:
+	for entry: Dictionary in RulesBalanceData.MAPS[MAP_ID]["monster_spawns"]:
+		assert_true(
+			RulesBalanceData.MONSTERS["monsters"].has(String(entry["id"])),
+			"monsters.yaml defines %s" % entry["id"]
+		)

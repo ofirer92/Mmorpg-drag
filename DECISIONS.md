@@ -192,3 +192,28 @@ linking means a bare `import "ws"` from it only resolves if `ws` is a dependency
 (dev) — both already ADR-010-approved for `server/`, same pinned versions — were added to the root
 `package.json` so the T-2.2 DoD (`pnpm sim -- --clients 4 --seconds 3` against a running server) is
 actually runnable. No new library was introduced.
+
+## ADR-017 — Server-authoritative combat: server-side targeting, private drops, shared xp
+Date: 2026-09-15 · Status: accepted
+Context: T-2.4/T-2.5/T-2.6 move combat off the client. The client must not be able to choose whom it
+hits, what drops, or how much xp it earns (anticheat-reviewer's standing questions), and two clients
+watching the same fight must agree on every number.
+Decision:
+- **Targeting is server-side.** An attack is a flag on the ordinary per-tick `input` (plus an optional
+  `skill_id`), never a target list. The Zone picks targets itself: alive entities within the skill's
+  `range_px` in the attacker's facing direction. A forged target id is therefore unrepresentable.
+- **Gates run on the server clock**: skill unlock (level), cooldown, dead attacker, dead target, and
+  self-attack are all rejected server-side; the client only renders the resulting `attack` / `damage`
+  / `died` facts. The crash streak (4 consecutive landed hits → doubled damage taken for
+  `crash_duration_s`) is likewise the server's state.
+- **Drops are private per player.** Every player who landed a hit on the victim gets an independently
+  rolled drop (`roll_loot` per player). A drop carries an `ownerId` and appears only in that player's
+  snapshot (`snapshotFor(playerId)`), so no client can learn about, contest, or steal another's loot.
+  `loot_pickup` succeeds only for the owner, within `PICKUP_RADIUS_PX`, once.
+- **XP is shared among damagers**, not just the killer: `group_xp_share(total_xp, damager_count)` from
+  the new shared-rules `party.ts` (curve in docs/balance/party.yaml, ⚠️ placeholder Q8). Choosing
+  "everyone who landed a hit" over "everyone in the zone" keeps leeching out while still rewarding
+  fighting together; the killer is still named in `died.killer_id` for attribution.
+Consequences: `snapshot()` became per-player; the broadcast builds the shared part once and appends
+each player's own drops. The client's LocalServer stays only as the single-player authority behind the
+CombatAuthority seam (T-2.9 removes it from net mode entirely).

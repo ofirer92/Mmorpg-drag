@@ -28,7 +28,9 @@ const LEVEL_UP_FLASH_S: float = 1.0
 @onready var level_up_label: Label = $LevelUpLabel
 @onready var level_up_timer: Timer = $LevelUpTimer
 
-var _server: LocalServer = null
+## T-2.4: typed against CombatAuthority (LocalServer in single-player,
+## RemoteAuthority in net mode) — see client/scripts/combat/combat_authority.gd.
+var _server: CombatAuthority = null
 var _entity_id: String = ""
 
 
@@ -47,7 +49,7 @@ func _ready() -> void:
 ## Wires this HUD to `entity_id`'s facts on `server` and does one initial
 ## refresh from its current get_stats() (so the HUD is correct even if it's
 ## bound after the entity already took damage/gained xp).
-func bind(server: LocalServer, entity_id: String) -> void:
+func bind(server: CombatAuthority, entity_id: String) -> void:
 	_server = server
 	_entity_id = entity_id
 	server.damage_dealt.connect(_on_damage_dealt)
@@ -55,6 +57,7 @@ func bind(server: LocalServer, entity_id: String) -> void:
 	server.xp_gained.connect(_on_xp_gained)
 	server.level_up.connect(_on_level_up)
 	server.healed.connect(_on_healed)
+	server.stats_synced.connect(_on_stats_synced)
 	_refresh_from_stats(server.get_stats(entity_id))
 
 
@@ -68,9 +71,14 @@ func _refresh_from_stats(stats: Dictionary) -> void:
 	_update_stats_panel(stats)
 
 
+## max_hp == 0 means "the authority has not told us yet" (net mode, before the first `state` lands) —
+## NOT "dead at 0/0", which is what a naive render looks like. Show a no-data placeholder instead.
 func _update_hp(hp: float, max_hp: float) -> void:
 	hp_bar.max_value = max(max_hp, 1.0)
 	hp_bar.value = hp
+	if max_hp <= 0.0:
+		hp_label.text = "%s %s" % [I18n.t("ui.hud.hp"), I18n.t("ui.hud.no_data")]
+		return
 	hp_label.text = "%s %d/%d" % [I18n.t("ui.hud.hp"), int(hp), int(max_hp)]
 
 
@@ -84,7 +92,10 @@ func _update_xp(total_xp: float, level: float) -> void:
 
 func _update_stats_panel(stats: Dictionary) -> void:
 	level_detail.text = "%s: %d" % [I18n.t("ui.hud.level"), int(stats.level)]
-	hp_detail.text = "%s: %d/%d" % [I18n.t("ui.hud.hp"), int(stats.hp), int(stats.max_hp)]
+	if float(stats.max_hp) <= 0.0:
+		hp_detail.text = "%s: %s" % [I18n.t("ui.hud.hp"), I18n.t("ui.hud.no_data")]
+	else:
+		hp_detail.text = "%s: %d/%d" % [I18n.t("ui.hud.hp"), int(stats.hp), int(stats.max_hp)]
 	attack_detail.text = "%s: %d" % [I18n.t("ui.hud.attack"), int(stats.attack)]
 	defense_detail.text = "%s: %d" % [I18n.t("ui.hud.defense"), int(stats.defense)]
 	var into: float = RulesProgression.xp_into_level(stats.total_xp, stats.level)
@@ -134,5 +145,10 @@ func refresh() -> void:
 
 
 func _on_healed(id: String, _amount: float, _new_hp: float) -> void:
+	if id == _entity_id:
+		refresh()
+
+
+func _on_stats_synced(id: String) -> void:
 	if id == _entity_id:
 		refresh()

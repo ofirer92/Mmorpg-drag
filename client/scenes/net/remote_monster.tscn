@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/net/remote_monster.gd" id="1_remote"]
+
+[node name="RemoteMonster" type="Node2D"]
+script = ExtResource("1_remote")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+hframes = 4
+vframes = 5
+frame = 0
+
+[node name="HpBar" type="ProgressBar" parent="."]
+offset_left = -16.0
+offset_top = -42.0
+offset_right = 16.0
+offset_bottom = -36.0
+show_percentage = false
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = -44.0
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1

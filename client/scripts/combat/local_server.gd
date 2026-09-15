@@ -1,5 +1,5 @@
 class_name LocalServer
-extends Node
+extends CombatAuthority
 ## T-0.8/T-0.9: Phase 0 stand-in for the real server (see CLAUDE.md — "the
 ## server is authoritative; the client never computes damage/XP/drop").
 ## WORKPLAN T-2.9 later swaps this node for real network messages without
@@ -12,30 +12,11 @@ extends Node
 ##
 ## Not an autoload: whoever owns a scene (arena.gd, a test) instances one
 ## LocalServer node and hands it to each Player/Monster via
-## set_local_server()/setup().
-
-signal damage_dealt(target_id: String, amount: float, new_hp: float, crit: bool)
-signal entity_died(id: String, xp: float, drop_item_id: String)
-signal crash_started(id: String, duration: float)
-signal crash_ended(id: String)
-## T-0.10: XP/level-up facts. `level` on xp_gained is the level AFTER this
-## grant is applied (so a grant that levels you up reports the new level,
-## not the old one) — level_up then fires separately for anyone who wants
-## to react only to the level boundary (HUD flash, etc.).
-signal xp_gained(id: String, amount: float, total_xp: float, level: float)
-signal level_up(id: String, new_level: float, stats: Dictionary)
-## T-0.11/T-0.13 wiring: a consumable was used / hp restored by the server.
-signal healed(id: String, amount: float, new_hp: float)
-## T-0.12: currency the killer receives for a kill (RulesEconomy.roll_money over monsters.yaml money).
-signal money_dropped(killer_id: String, amount: float)
-## T-0.7: a progression entity's skill intent (request_skill) was accepted —
-## `cooldown` is the skill's own cooldown (seconds), echoed for UI feedback.
-signal skill_used(id: String, skill_id: String, cooldown: float)
-## T-0.7: a request_skill() intent was refused. `reason` is one of
-## "unknown" (bad entity/skill id or a non-progression attacker),
-## "dead" (attacker is dead), "locked" (player level too low for the skill),
-## "cooldown" (skill not ready yet).
-signal skill_rejected(id: String, skill_id: String, reason: String)
+## set_local_server()/setup(). T-2.4: extends CombatAuthority (see
+## combat_authority.gd) purely so Player/Hud/SkillBar/clinic_lobby can be
+## typed against the authority interface instead of this concrete class —
+## every signal below is now declared on CombatAuthority and simply
+## inherited here, with NO behaviour change from before T-2.4.
 
 ## Seeded so tests can predict rolls: create a second RandomNumberGenerator
 ## with the same seed and call randf() the same number of times.

@@ -3,6 +3,10 @@
 # T-0.9 (3 AI archetypes: patrol / chase / boss-ish). game-designer replaces names+numbers in T-0.7 after Q1.
 # ai_params: px, px/s, seconds. Read by the client monster AI through RulesBalanceData.MONSTERS.
 version: 1
+# T-2.4: ⚠️ ENGINEERING PLACEHOLDER — seconds between a monster dying and the server respawning it at
+# its spawn point, full hp (server/src/world/zone.ts). Not tuned for pacing/farming balance yet;
+# game-designer owns the final number.
+respawn_delay_s: 10
 monsters:
   side_effect_slime:
     money: {min: 1, max: 4}   # currency drop range (RulesEconomy.roll_money)

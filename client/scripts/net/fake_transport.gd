@@ -18,6 +18,16 @@ extends NetTransport
 
 const SPAWN_X: float = 150.0
 
+## T-2.4: this fake server's combat is a TEST DOUBLE, not RulesCombat — it
+## deals a fixed amount per accepted attack and always drops the same test
+## item, deliberately NOT reusing real balance numbers (a real server would
+## call shared-rules; this only needs to prove the CLIENT never computes
+## damage itself and only ever reacts to the facts below).
+const TEST_DAMAGE_PER_HIT: float = 10.0
+const TEST_MONSTER_XP: float = 10.0
+const TEST_MONSTER_MONEY: int = 5
+const TEST_DROP_ITEM_ID: String = "test_item"
+
 ## Test-only introspection: every message this fake server ever received (in
 ## arrival order, i.e. AFTER the simulated one-way latency), regardless of
 ## whether it was ever applied — lets tests assert exactly what NetClient
@@ -26,6 +36,25 @@ var received_log: Array[Dictionary] = []
 
 var one_way_latency_s: float = 0.0
 var player_name: String = "tester"
+
+## T-2.4: test hooks for the combat half of protocol v1 — see the class
+## header. Set before connect_to() (or any time before the join handshake
+## needs them).
+var monster_id: String = "m_1"
+var monster_kind: String = "side_effect_slime"
+var monster_hp: float = 30.0
+var monster_max_hp: float = 30.0
+var monster_alive: bool = true
+var monster_pos: Vector2 = Vector2(SPAWN_X + 60.0, Prediction.FLOOR_REST_Y)
+## Test hook: forces the next loot_pickup to be answered `added: false`
+## (bag full / out of range / already taken — docs/protocol.md § Loot),
+## regardless of whether a real unclaimed drop exists.
+var force_loot_rejected: bool = false
+## Test hook: this fake server has no monster AI (see class header), so a
+## test that wants to check the HUD reacts to the LOCAL PLAYER taking damage
+## calls deal_damage_to_player() directly instead.
+var player_hp: float = 100.0
+var player_max_hp: float = 100.0
 
 var _time: float = 0.0
 var _open: bool = false
@@ -39,6 +68,9 @@ var _state: Dictionary = {}
 var _last_seq: int = -1
 var _input_queue: Array[Dictionary] = []
 var _next_id: int = 1
+var _next_drop_id: int = 1
+## {} when there is no unclaimed drop, else {id, pos, item_id, money, expires_tick}.
+var _drop: Dictionary = {}
 
 
 func _init(latency_s: float = 0.0) -> void:
@@ -108,6 +140,8 @@ func _handle(msg: Dictionary) -> void:
 			_on_join()
 		"input":
 			_on_input(msg)
+		"loot_pickup":
+			_on_loot_pickup(msg)
 		"ping":
 			_enqueue({"t": "pong", "ts": msg.get("ts", 0), "server_ts": int(_time * 1000.0)})
 		_:
@@ -142,7 +176,15 @@ func _on_join() -> void:
 func _on_input(msg: Dictionary) -> void:
 	if not _joined:
 		return
-	_input_queue.append({"seq": int(msg.get("seq", 0)), "dir": float(msg.get("dir", 0)), "jump": bool(msg.get("jump", false))})
+	_input_queue.append(
+		{
+			"seq": int(msg.get("seq", 0)),
+			"dir": float(msg.get("dir", 0)),
+			"jump": bool(msg.get("jump", false)),
+			"attack": bool(msg.get("attack", false)),
+			"skill_id": String(msg.get("skill_id", "")),
+		}
+	)
 
 
 ## Drains at most one queued input per server tick (protocol.md: "server:
@@ -156,7 +198,86 @@ func _step_tick(tick_s: float) -> void:
 		var next_input: Dictionary = _input_queue.pop_front()
 		_state = Prediction.step(_state, float(next_input.dir), bool(next_input.jump), tick_s)
 		_last_seq = int(next_input.seq)
-	_enqueue({"t": "state", "tick": _server_tick, "last_seq": {_player_id: _last_seq}, "players": [_player_view()], "monsters": [], "drops": []})
+		if bool(next_input.get("attack", false)) and monster_alive:
+			_resolve_attack(String(next_input.get("skill_id", "")))
+	_enqueue(
+		{
+			"t": "state",
+			"tick": _server_tick,
+			"last_seq": {_player_id: _last_seq},
+			"players": [_player_view()],
+			"monsters": [_monster_view()] if monster_alive else [],
+			"drops": _drops_view(),
+		}
+	)
+
+
+## Deliberately NOT real combat math (RulesCombat lives in rules/ — this is a
+## test double, see TEST_DAMAGE_PER_HIT's doc comment): announces the attack
+## (animation cue), deals a fixed hit, and — on the killing blow — enqueues
+## `died` with a drop the client picks up on a later `state`, exactly the
+## sequence docs/protocol.md § "Attack → damage → death" describes.
+func _resolve_attack(skill_id: String) -> void:
+	var target_ids: Array[String] = [monster_id]
+	_enqueue({"t": "attack", "attacker_id": _player_id, "skill_id": skill_id if skill_id != "" else null, "target_ids": target_ids})
+	monster_hp = max(0.0, monster_hp - TEST_DAMAGE_PER_HIT)
+	_enqueue({"t": "damage", "target_id": monster_id, "attacker_id": _player_id, "amount": TEST_DAMAGE_PER_HIT, "new_hp": monster_hp, "crit": false})
+	if monster_hp <= 0.0 and monster_alive:
+		monster_alive = false
+		var drop_id: String = "d_%d" % _next_drop_id
+		_next_drop_id += 1
+		_drop = {
+			"id": drop_id,
+			"pos": {"x": monster_pos.x, "y": monster_pos.y},
+			"item_id": TEST_DROP_ITEM_ID,
+			"money": TEST_MONSTER_MONEY,
+			"expires_tick": _server_tick + 200,
+		}
+		_enqueue(
+			{
+				"t": "died",
+				"id": monster_id,
+				"killer_id": _player_id,
+				"xp": TEST_MONSTER_XP,
+				"drop_id": drop_id,
+				"item_id": TEST_DROP_ITEM_ID,
+				"money": TEST_MONSTER_MONEY,
+			}
+		)
+
+
+func _monster_view() -> Dictionary:
+	return {
+		"id": monster_id,
+		"kind": monster_kind,
+		"pos": {"x": monster_pos.x, "y": monster_pos.y},
+		"vel": {"x": 0.0, "y": 0.0},
+		"hp": monster_hp,
+		"max_hp": monster_max_hp,
+		"level": 1,
+		"facing": -1,
+		"anim": "idle",
+		"alive": monster_alive,
+	}
+
+
+func _drops_view() -> Array:
+	if _drop.is_empty():
+		return []
+	return [_drop]
+
+
+## docs/protocol.md § Loot: `added: true` broadcast (here: our only client),
+## `added: false` to the requester only, on rejection.
+func _on_loot_pickup(msg: Dictionary) -> void:
+	var drop_id: String = String(msg.get("drop_id", ""))
+	if force_loot_rejected or _drop.is_empty() or String(_drop.get("id", "")) != drop_id:
+		_enqueue({"t": "loot", "player_id": _player_id, "drop_id": drop_id, "item_id": null, "money": 0, "added": false})
+		return
+	var item_id: String = String(_drop.get("item_id", ""))
+	var money: int = int(_drop.get("money", 0))
+	_enqueue({"t": "loot", "player_id": _player_id, "drop_id": drop_id, "item_id": item_id, "money": money, "added": true})
+	_drop = {}
 
 
 func _player_view() -> Dictionary:
@@ -167,14 +288,21 @@ func _player_view() -> Dictionary:
 		"name": player_name,
 		"pos": {"x": pos.x, "y": pos.y},
 		"vel": {"x": vel.x, "y": vel.y},
-		"hp": 100,
-		"max_hp": 100,
+		"hp": player_hp,
+		"max_hp": player_max_hp,
 		"level": 1,
 		"xp": 0,
 		"facing": -1 if vel.x < 0.0 else 1,
 		"anim": "run" if absf(vel.x) > 1.0 else "idle",
-		"alive": true,
+		"alive": player_hp > 0.0,
 	}
+
+
+## Test hook (see player_hp's doc comment): announces a `damage` fact
+## against the local player, e.g. to check the HUD reacts.
+func deal_damage_to_player(amount: float) -> void:
+	player_hp = max(0.0, player_hp - amount)
+	_enqueue({"t": "damage", "target_id": _player_id, "attacker_id": monster_id, "amount": amount, "new_hp": player_hp, "crit": false})
 
 
 func _snapshot() -> Dictionary:
@@ -184,8 +312,8 @@ func _snapshot() -> Dictionary:
 		"tick": _server_tick,
 		"last_seq": {_player_id: _last_seq},
 		"players": [_player_view()],
-		"monsters": [],
-		"drops": [],
+		"monsters": [_monster_view()] if monster_alive else [],
+		"drops": _drops_view(),
 	}
 
 

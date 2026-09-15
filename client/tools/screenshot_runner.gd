@@ -17,9 +17,12 @@ func _init() -> void:
 	# scene's own _ready() runs and reads them.
 	await process_frame
 	root.add_child(packed.instantiate())
-	await process_frame
-	await process_frame
-	await process_frame
+	# Some scenes need time before they are worth photographing (a net-mode scene has to connect,
+	# join and receive its first state). SCREENSHOT_DELAY_FRAMES lets the caller wait; 3 is enough
+	# for a purely local scene.
+	var frames: int = maxi(3, int(OS.get_environment("SCREENSHOT_DELAY_FRAMES")))
+	for _i: int in range(frames):
+		await process_frame
 	var img: Image = root.get_viewport().get_texture().get_image()
 	var err: Error = img.save_png(out)
 	if err != OK:
