@@ -89,3 +89,18 @@ ui.net.connecting: Connecting to server...
 ui.net.disconnected: Disconnected from server.
 ui.net.error: Server communication error.
 ui.hud.no_data: awaiting approval
+
+# T-1.5 — Form 27-B, the bureaucratic level-up approval (docs/content keys only, never literals in code)
+ui.dosage_form.title: Form 27-B — Dosage Increase Request
+ui.dosage_form.subtitle: Approvals Department · Appendix C · file in triplicate
+ui.dosage_form.applicant: Applicant
+ui.dosage_form.grade: Clearance grade
+ui.dosage_form.granted: Hereby approved, retroactively
+ui.dosage_form.stat.max_hp: Maximum fitness
+ui.dosage_form.stat.attack: Treatment force
+ui.dosage_form.stat.defense: Administrative immunity
+ui.dosage_form.no_change: No change recorded. Please file form 27-C.
+ui.dosage_form.pending: Advanced dosage selection — pending the ethics committee.
+ui.dosage_form.side_effects: Subsection 4 — side effects are not the clinic's liability.
+ui.dosage_form.approve: Approve and sign in triplicate
+ui.dosage_form.stamp: APPROVED

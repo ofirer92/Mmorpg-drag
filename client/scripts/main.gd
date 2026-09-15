@@ -50,6 +50,7 @@ var test_transport: NetTransport = null
 @onready var inventory_panel: InventoryPanel = $InventoryPanel
 @onready var dialogue_box: DialogueBox = $DialogueBox
 @onready var shop_panel: ShopPanel = $ShopPanel
+@onready var dosage_form: DosageForm = $DosageForm
 @onready var autosave_timer: Timer = $AutosaveTimer
 @onready var net_session: NetSession = $NetSession
 @onready var net_status_label: Label = $NetLayer/NetStatusLabel
@@ -70,6 +71,11 @@ func _ready() -> void:
 
 	hud.bind(authority, Player.ENTITY_ID)
 	skill_bar.bind(authority, clinic_lobby.player)
+	# T-1.5: bound BEFORE apply_save() below, so a save that restores a higher level does not fire a
+	# level_up the form would show as a "new" approval — apply_save sets progress directly, and
+	# DosageForm re-snapshots on bind, not on every stats change.
+	dosage_form.bind(authority, Player.ENTITY_ID, ARCHETYPE)
+	dosage_form.approved.connect(_on_dosage_form_approved)
 	clinic_lobby.inventory = inventory
 	inventory_panel.bind(inventory)
 	inventory.equipped_changed.connect(_on_equipped_changed)
@@ -152,7 +158,12 @@ func _process(_delta: float) -> void:
 
 
 func is_ui_open() -> bool:
-	return inventory_panel.is_open() or shop_panel.is_open() or dialogue_box.is_open()
+	return (
+		inventory_panel.is_open()
+		or shop_panel.is_open()
+		or dialogue_box.is_open()
+		or dosage_form.is_open()
+	)
 
 
 func _notification(what: int) -> void:
@@ -162,6 +173,9 @@ func _notification(what: int) -> void:
 
 func _on_equipped_changed(_slot: String, _item_id: String) -> void:
 	clinic_lobby.local_server.set_gear_bonus(Player.ENTITY_ID, inventory.equipped_stats())
+	# Gear moves attack/defense/max_hp with no level_up — re-baseline so the next form reports the
+	# level's own grant, not the sword the player happened to equip in between.
+	dosage_form.resync()
 
 
 ## A consumable's effect is its `stats.hp` (items.yaml); the server applies it.
@@ -174,6 +188,13 @@ func _on_item_used(item_id: String) -> void:
 
 
 func _on_level_up(_id: String, _level: float, _stats: Dictionary) -> void:
+	save_game()
+
+
+## T-1.5: the player signed Form 27-B. The level itself was granted by the authority long before this
+## (the form only reports it), so there is nothing to apply here — but the approval is a natural
+## save point, and it is the hook T-1.4's real dosage branch will use once Q1 unblocks it.
+func _on_dosage_form_approved(_level: int) -> void:
 	save_game()
 
 
@@ -246,3 +267,6 @@ func apply_save(data: Dictionary) -> void:
 	if pos is Array and pos.size() == 2:
 		clinic_lobby.set_player_position(Vector2(float(pos[0]), float(pos[1])))
 	hud.refresh()
+	# The restored level/stats arrived without a level_up signal, so re-baseline the form or the next
+	# real level-up would be reported as a delta from the level-1 stats taken at bind().
+	dosage_form.resync()

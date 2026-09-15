@@ -89,3 +89,18 @@ ui.net.connecting: מתחבר לשרת...
 ui.net.disconnected: הניתוק מהשרת. מנסים שוב...
 ui.net.error: שגיאת תקשורת עם השרת.
 ui.hud.no_data: ממתין לאישור
+
+# T-1.5 — Form 27-B, the bureaucratic level-up approval (docs/content keys only, never literals in code)
+ui.dosage_form.title: טופס 27-ב — בקשה לעלייה במינון
+ui.dosage_form.subtitle: מחלקת אישורים · נספח ג' · יש למלא בשלושה עותקים
+ui.dosage_form.applicant: שם המבקש
+ui.dosage_form.grade: דרגת אישור
+ui.dosage_form.granted: אושר בזאת, רטרואקטיבית
+ui.dosage_form.stat.max_hp: כשירות מרבית
+ui.dosage_form.stat.attack: עוצמת טיפול
+ui.dosage_form.stat.defense: חסינות מנהלית
+ui.dosage_form.no_change: לא נרשם שינוי. נא להגיש טופס 27-ג.
+ui.dosage_form.pending: בחירת מינון מתקדם — ממתין לוועדת האתיקה.
+ui.dosage_form.side_effects: סעיף קטן 4 — תופעות הלוואי אינן באחריות המרפאה.
+ui.dosage_form.approve: אשר וחתום בשלושה עותקים
+ui.dosage_form.stamp: אושר

@@ -12,6 +12,7 @@
 - [ ] Q6: on the human's 'add features' instruction, T-0.7 and T-0.12 were built with PLACEHOLDER skills (5 Stim skills), NPC lines (pharmacist), shop stock and a currency ("אישורי החזר"). All live in docs/balance/*.yaml + docs/content — swap freely. OK? (not blocking)
 - [ ] Q7: items.yaml `affixes` (10 satire affixes, slot ranges per rarity) are ENGINEERING PLACEHOLDERS. game-designer owns them (T-1.7 content). OK? (not blocking)
 - [ ] Q8: docs/balance/party.yaml (group XP bonus curve) and the monster respawn delay are ENGINEERING PLACEHOLDERS. game-designer owns them. OK? (not blocking)
+- [ ] Q9: T-2.9 ("the server is always the authority, also solo") requires a PRODUCT decision I will not guess: **does the game keep an offline single-player mode?** Today solo = LocalServer resolving combat in the client, and it also owns gear stats, consumable heals, save/load and the shop economy — none of which the server has yet (that is Phase 3 persistence). Deleting the solo branch makes the Phase 0 prototype unplayable without a running server, and makes a standalone Android build (T-0.14) useless without a hosted one. Options: (a) always-online — delete the solo branch, dev runs a local server; (b) keep offline solo, and make its combat provably identical to the server's by moving the whole resolve-attack sequence into shared-rules (the client's damage() call then lives in generated rules/, satisfying the DoD honestly); (c) keep solo as a dev-only cheat mode, never shipped. (blocks T-2.9)
 - [ ] Q2: שם הריפו/תיקייה הוא `Mmorpg-drag`, ה-WORKPLAN מניח `hamirpaa`. להשאיר? (devops, not blocking)
 
 ## Phase -1 — תשתית
@@ -45,7 +46,7 @@
 - [ ] blocked T-1.2 | godot-dev ×4 | Unique mechanics: Numb / Illusion / Zen / Rage | test: one GUT test per mechanic | reason: Q1
 - [ ] blocked T-1.3 | godot-dev + game-designer | Archetype select screen with satirical text | test: screenshot | reason: Q1
 - [ ] blocked T-1.4 | game-designer | Level-10 branch: 2 "dosages" per archetype | test: YAML + sim | reason: Q1
-- [ ] ready T-1.5 | godot-dev | "טופס עלייה במינון 27-ב" bureaucratic upgrade UI (shell, wired to level-up) | test: screenshot
+- [x] T-1.5 | godot-dev | "טופס עלייה במינון 27-ב" bureaucratic upgrade UI (shell, wired to level-up) | test: client/tests/test_dosage_form.gd (11) + docs/screenshots/dosage_form_{390x844,approved_390x844,1920x1080}.png
 - [ ] blocked T-1.6 | art-pipeline + game-designer + godot-dev | 3 new zones (10 monsters, 1 boss) | test: sim + screenshot | reason: Q1
 - [x] T-1.7 | server-dev | Item affixes (10) — rules level: affixes.ts + YAML + parity fixture (client item instances = T-1.7b) | test: tests/affixes.test.ts (20) + client/tests/test_rules_affixes.gd (11)
 - [ ] ready T-1.7b | godot-dev | Inventory item instances with rolled affixes; drops carry affixes; comparison shows affix stats | test: GUT
@@ -60,12 +61,13 @@
 - [x] T-2.6 | server-dev | Group XP bonus (shared-rules party.ts, split among damagers) | test: tests/party.test.ts + client/tests/test_rules_party.gd
 - [ ] ready T-2.7 | godot-dev | Chat + quick emoji (mobile) | test: screenshot
 - [ ] ready T-2.8 | server-dev + qa | Disconnect/reconnect mid-fight | test: GUT/vitest
-- [ ] ready T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/
+- [ ] blocked T-2.9 | godot-dev | Remove single-player logic from the client (LocalServer → local server mode) | test: grep: no `damage(` in client outside rules/ | reason: Q9 — whether offline solo play survives is a product decision, and the solo branch also carries gear/heal/save/shop that the server does not implement yet
 
 ## Polish (Phase 0 leftovers)
 - [x] T-0.15 | godot-dev | Block attacks/skills while a dialogue, shop or inventory panel is open | test: test_game_session.gd::test_open_panel_blocks_attacks_but_not_movement
 
 ### QA reports
+- T-1.5: PASS — 11 GUT tests. The form only ECHOES the authority's grants (the row test asserts the numbers against RulesProgression, never a literal), one form per level crossed with the rest queued, double-press cannot approve twice, and `resync()` re-baselines after a save load or a gear change (both of which move stats with NO level_up signal — without it the first form after a load would have shown a delta from level 1). Reviewed at 390×844 and 1920×1080; first render had the code-built grant rows in the theme's light font on cream paper (near-invisible) — fixed with an explicit ink colour. Known limits: the form is modal, so it blocks attacks until signed (T-0.15 rule, deliberate); in net mode RemoteAuthority reports attack/defense as 0 (not in `state` snapshots) so only the max_hp row appears there.
 - T-I.1: PASS — `scripts/check.sh` green (STRICT_CLIENT=1 with Godot 4.3), `scripts/hooks/test_hooks.sh` 17/17, `pnpm lint` clean, ruff clean.
 - T-I.3/T-I.4/T-I.5: PASS — vitest 18 tests, GUT 6 tests/102 asserts, TS and generated GDScript agree on xp_for_level(1..30) and totals via packages/shared-rules/tests/fixtures/xp_curve.json.
 - T-I.6: PASS — guard_bash.sh blocked a real recursive delete during the bootstrap session.
