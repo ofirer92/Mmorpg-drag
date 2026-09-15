@@ -1,5 +1,15 @@
 # PROGRESS
 
+## Session 7 — 2026-09-15 — Phase 2: server room + client net layer (in progress)
+**Done**
+- Session-start check green (vitest 165 + 7, GUT 212). T-2.2 (server room, authoritative movement, shared map layout in docs/maps) and T-2.3 (NetClient, prediction/reconciliation, remote players, net smoke scene) delegated to server-dev / godot-dev agents on disjoint trees.
+
+**Next**
+- Integrate: run the headless net smoke scene against the real Node server; extend check_protocol_sync to PROTOCOL_VERSION; commit T-2.2/T-2.3; then T-2.4 combat through the server.
+
+**Broken / not verified**
+- Nothing new yet; agents still running.
+
 ## Session 6 — 2026-09-14 — Phase 1/2 engineering: affix rules, protocol v1, UI blocking
 **Done**
 - T-1.7 (rules level): 10 placeholder affixes in items.yaml (Q7), shared-rules affixes.ts (count/pool/weighted roll/stat+mult/item_stat_with_affixes), parity fixture asserted by vitest and GUT.
