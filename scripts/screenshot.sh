@@ -11,7 +11,11 @@ OUT="$ROOT/docs/screenshots/${NAME}_${RES}.png"
 rm -f "$OUT"
 # Godot's --quit-after counts frames and is hard: it must outlast the runner's own wait, or the
 # process exits before the capture (a net-mode scene needs hundreds of frames to connect and join).
-DELAY="${SCREENSHOT_DELAY_FRAMES:-3}"
+# 3 frames is enough for a static UI scene but NOT for anything with physics: PlayerCamera runs on
+# the PHYSICS callback, so a 3-frame capture photographs the camera before it has moved once — the
+# map/gameplay screenshots were all silently t=0 snapshots, identical no matter what the camera did.
+# 90 frames (~1.5s) lets the player settle on the ground and the camera reach its clamped position.
+DELAY="${SCREENSHOT_DELAY_FRAMES:-90}"
 QUIT_AFTER=$(( DELAY + 60 ))
 cd "$ROOT/client"
 # No display (CI / sandbox)? Wrap in xvfb-run when available. Audio is forced to the dummy driver.

@@ -1,5 +1,22 @@
 # PROGRESS
 
+## Session 10 — 2026-09-16 — portrait: the world goes vertical
+**Done**
+- The window was already portrait (orientation=SCREEN_PORTRAIT, 390×844 — verified by probing the engine, not by trusting the file). The WORLD was not: clinic_lobby was 1920×640px, three times wider than tall and SHORTER than the screen, so the player spent the game staring at sky the map could never fill.
+- Rebuilt clinic_lobby as a 20×60 vertical tower (640×1920). Ledge spacing is derived from RulesMovement (75px jump rise → 2 rows), not eyeballed, and a permanently open shaft at cols 1–3 gives the spawn headroom. One generator writes BOTH copies of the map (server yaml + client LAYOUT, ADR-016) so parity cannot drift.
+- PlayerCamera now reserves the bottom HUD band so a grounded player is not hidden behind the skill bar and joystick.
+- Totals: vitest 165 + 42, GUT 288 across 34 scripts. check.sh GREEN.
+
+**Next**
+- T-2.7 chat UI, T-2.8 disconnect/reconnect mid-fight, T-2.10 drops carrying affixes over the wire.
+- Human: Q1–Q10, Phase 0 playtest, first PR.
+
+**Broken / not verified**
+- THIRD false-green of this series, and the worst: scripts/screenshot.sh waited 3 IDLE frames, but PlayerCamera runs on the PHYSICS callback — so every gameplay screenshot ever committed was a t=0 snapshot. Two captures taken with opposite camera settings came out byte-identical, which is how it was caught. Default is now 90 frames; docs/screenshots/{main,clinic_lobby} re-taken. The stale landscape captures of a now-vertical map were removed.
+- The first tower spawned the player CLIPPED into the ledge above (32px headroom vs a 30px body) and they could not move. No layout assertion could see it — it took running the player. Both new climb tests were verified to FAIL on the broken layout before being kept.
+- Q10 (new): the 75px jump forces a ledge every 2 rows, which reads as a dense ladder. A portrait platformer probably wants more vertical reach (higher jump / double jump). Designer's call — not changed here.
+- Net mode still shows drops as affixless (T-2.10). T-2.9 still blocked on Q9.
+
 ## Session 9 — 2026-09-15 — Phase 1: Form 27-B + item instances
 **Done**
 - T-1.5 "טופס עלייה במינון 27-ב": every level-up now presents a bureaucratic approval form that REPORTS the grants the authority already applied (it never grants anything itself, so it works against LocalServer or RemoteAuthority unchanged). One form per level crossed, the rest queued; signing stamps it, blocks a double-approval and saves. Modal, so it joins the T-0.15 set that blocks attacks. The level-10 dosage branch is shown as pending the ethics committee rather than faked — it is blocked on Q1.

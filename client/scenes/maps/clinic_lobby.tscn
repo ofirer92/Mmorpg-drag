@@ -12,7 +12,7 @@ script = ExtResource("1_map")
 tile_set = ExtResource("2_tileset")
 
 [node name="Spawn" type="Marker2D" parent="."]
-position = Vector2(80, 590)
+position = Vector2(80, 1870)
 
 [node name="Player" parent="." instance=ExtResource("3_player")]
 position = Vector2(80, 590)

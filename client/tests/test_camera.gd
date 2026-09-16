@@ -29,7 +29,11 @@ func test_camera_has_a_deadzone_and_map_bounds_wired_on_ready() -> void:
 	assert_eq(cam.limit_left, int(bounds.position.x), "map bounds set limit_left on ready")
 	assert_eq(cam.limit_right, int(bounds.position.x + bounds.size.x), "map bounds set limit_right on ready")
 	assert_eq(cam.limit_top, int(bounds.position.y), "map bounds set limit_top on ready")
-	assert_eq(cam.limit_bottom, int(bounds.position.y + bounds.size.y), "map bounds set limit_bottom on ready")
+	assert_eq(
+		cam.limit_bottom,
+		int(bounds.position.y + bounds.size.y) + PlayerCamera.BOTTOM_UI_PADDING_PX,
+		"limit_bottom reserves the touch-control band below the map"
+	)
 
 
 func test_set_map_bounds_updates_limits() -> void:
@@ -39,7 +43,7 @@ func test_set_map_bounds_updates_limits() -> void:
 	assert_eq(cam.limit_left, 10)
 	assert_eq(cam.limit_top, 20)
 	assert_eq(cam.limit_right, 510)
-	assert_eq(cam.limit_bottom, 320)
+	assert_eq(cam.limit_bottom, 320 + PlayerCamera.BOTTOM_UI_PADDING_PX)
 
 
 func test_camera_follows_player_beyond_deadzone() -> void:

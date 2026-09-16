@@ -2,16 +2,22 @@ class_name ClinicLobby
 extends Node2D
 ## T-0.3: the phase-0 prototype map. A single TileMapLayer (Godot 4.3 —
 ## TileMap itself is deprecated) built procedurally from LAYOUT, a compact
-## 20-rows × 60-cols description ('#' ground, '=' platform, 'W' wall, 'A'
+## 60-rows × 20-cols description ('#' ground, '=' platform, 'W' wall, 'A'
 ## decorative accent, '.' empty air). Ground + platform + wall tiles carry
-## collision (see client/tools/gen_tileset_resource.gd); the platform step
-## sizes below were chosen against RulesMovement so every platform is
-## reachable with a single jump (max jump height ≈ v²/2g ≈ 75px — see
-## client/tests/test_map_clinic_lobby.gd for the "reachable in principle"
-## check on this array).
+## collision (see client/tools/gen_tileset_resource.gd).
+##
+## The map is a VERTICAL TOWER — 640×1920px, taller than it is wide — because the game is
+## portrait-only (project.godot display/window/handheld/orientation = SCREEN_PORTRAIT, design
+## viewport 390×844). It used to be a 1920×640 horizontal strip, which could not even fill a portrait
+## screen's height: the player spent the whole game looking at empty sky.
+##
+## Platform spacing is DERIVED, not eyeballed: a full jump rises v²/2g = 520²/3600 ≈ 75px, so ledges
+## sit exactly 2 rows (64px) apart, and consecutive ledges are column-adjacent so the straight-up
+## jump at each seam always lands. client/tests/test_map_clinic_lobby.gd proves every platform is
+## reachable, and that the map stays taller than wide.
 
-const GRID_COLS: int = 60
-const GRID_ROWS: int = 20
+const GRID_COLS: int = 20
+const GRID_ROWS: int = 60
 const TILE_SIZE: int = 32
 
 ## Atlas column order — must match docs/art/specs/tileset_clinic.yaml `tiles:`
@@ -33,46 +39,84 @@ const CHAR_TO_TILE: Dictionary = {
 	"A": "accent",
 }
 
-## 20 rows × 60 columns. Row 0 is the top of the map, row 19 is the ground.
-## Walls run the full height at both ends; 8 floating platforms step up from
-## the ground and back down again, each ≤ 2 rows (64px) above its nearest
-## lower neighbour and ≤ 5 columns (160px) away horizontally.
+## 60 rows × 20 columns. Row 0 is the top of the tower, row 59 is the ground.
+## Walls run the full height at both ends; half-width ledges alternate left/right every 2 rows all
+## the way up, so the player climbs by zig-zagging between them.
 const LAYOUT: Array[String] = [
-	"W..........................................................W",
-	"W..........................................................W",
-	"W............................AA............................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..........................................................W",
-	"W..................====....................................W",
-	"W..........................................................W",
-	"W.............====.......====..............................W",
-	"W..........................................................W",
-	"W........====.................====.........................W",
-	"W..........................................................W",
-	"W...====...........................====...====.............W",
-	"W..........................................................W",
-	"W##########################################################W",
+	"W..................W",
+	"W........AA........W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W...........=======W",
+	"W..................W",
+	"W...========.......W",
+	"W..................W",
+	"W##################W",
 ]
 
 ## T-0.10: monsters placed on the real map — id must match
 ## docs/balance/monsters.yaml, cell is a LAYOUT (col, row) grid coordinate
 ## that must be empty ('.') with a solid tile directly below it (row + 1),
-## enforced by client/tests/test_map_clinic_lobby.gd. 3 ground-level
-## side_effect_slime, 2 lost_referral near the mid platforms, 1 form_27b far
-## to the right (see LAYOUT above for the platform columns).
+## enforced by client/tests/test_map_clinic_lobby.gd. Spread UP the tower rather than along a
+## strip: slimes near the bottom, lost_referral mid-climb, form_27b waiting at the top.
 const MONSTER_SPAWNS: Array[Dictionary] = [
-	{"id": "side_effect_slime", "cell": Vector2i(10, 18)},
-	{"id": "side_effect_slime", "cell": Vector2i(30, 18)},
-	{"id": "side_effect_slime", "cell": Vector2i(50, 18)},
-	{"id": "lost_referral", "cell": Vector2i(20, 10)},
-	{"id": "lost_referral", "cell": Vector2i(15, 12)},
-	{"id": "form_27b", "cell": Vector2i(55, 18)},
+	{"id": "side_effect_slime", "cell": Vector2i(16, 58)},
+	{"id": "side_effect_slime", "cell": Vector2i(14, 54)},
+	{"id": "side_effect_slime", "cell": Vector2i(6, 48)},
+	{"id": "lost_referral", "cell": Vector2i(14, 38)},
+	{"id": "lost_referral", "cell": Vector2i(6, 28)},
+	{"id": "form_27b", "cell": Vector2i(6, 4)},
 ]
 
 ## Phase-0 default (see LocalServer.revive's doc comment for the "full hp,
